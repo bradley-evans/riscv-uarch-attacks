@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include <dirent.h>
 
 
 #include "../src/low.h"

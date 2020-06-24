@@ -120,3 +120,8 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+
+# Build folders
+build-default/*
+build-riscv/*

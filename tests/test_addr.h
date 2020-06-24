@@ -1,5 +1,5 @@
-#ifndef __TEST_UTIL_H__
-#define __TEST_UTIL_H__
+#ifndef __TEST_ADDR_H__
+#define __TEST_ADDR_H__
 
 #include <stdarg.h>
 #include <stddef.h>

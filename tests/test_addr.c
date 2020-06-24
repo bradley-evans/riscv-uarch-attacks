@@ -1,3 +1,6 @@
+#include "addr.h"
+
+
 #include "test_low.h"
 
 
@@ -5,13 +8,8 @@ char g_DISABLE_MOCK = 0;    // global variable to check if we don't want to use
                             // a mocked function
 
 char* __wrap_get_StringFromSysFile(char filename[]) {
-    printf("in mock sysstring reader\n");
     if (g_DISABLE_MOCK) {
-        printf("mocking disabled, calling real function\n");
-        char *real = malloc(100);
-        real = __real_get_StringFromSysFile(filename);
-        printf("got the real value, %s\n", real);
-        return real;
+        return __real_get_StringFromSysFile(filename);
     }
     return (mock());
 }

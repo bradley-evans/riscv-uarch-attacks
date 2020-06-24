@@ -16,25 +16,20 @@
  * @brief Useful helper functions.
  */
 
-#ifndef __LOW_H__
-#define __LOW_H__
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
 
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <stdio.h>
 
-
-#include "low.h"
-
-struct address_t {
-    unsigned int offset;
-    unsigned int set;
-    unsigned int tag;
-    unsigned int addr;
-};
 
 char* concat(char *s1, char *s2);
-
+char* get_StringFromSysFile(char * filename);
+int get_hartid();
+char* int_to_binary_string(long long num, int numbits);
 
 #endif

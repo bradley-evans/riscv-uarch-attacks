@@ -16,14 +16,15 @@
  * @brief Low level common functions for RISC-V side-channel attacks.
  */
 
-#ifndef __UTIL_H__
-#define __UTIL_H__
+#ifndef __LOW_H__
+#define __LOW_H__
 
 
 #include <stdint.h>
 #include <stdio.h>
 #include <dirent.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 #include "util.h"
 

@@ -25,11 +25,13 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <time.h>
 
 
 char* concat(char *s1, char *s2);
 char* get_StringFromSysFile(char * filename);
 int get_hartid();
 char* int_to_binary_string(long long num, int numbits);
+void delay(int ms);
 
 #endif

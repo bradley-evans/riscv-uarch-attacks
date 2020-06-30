@@ -65,3 +65,13 @@ char* int_to_binary_string(long long num, int numbits) {
     }
     return binary_string;
 }
+
+
+void delay(int ms) {
+    long pause;
+    clock_t now, then;
+    pause = ms*(CLOCKS_PER_SEC/1000);
+    while( (now-then) < pause ) {
+        now = clock();
+    } 
+}

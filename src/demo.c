@@ -105,4 +105,6 @@ void main() {
     // enable debug messages beyond this point
     g_DEBUG = 1;
 
+    l1pp_demo(&victim, evictor);
+
 }

@@ -34,9 +34,9 @@
  * locations. This method was suggested by Stef O'Rear. It would be good to 
  * examine if compiler optimizations actually affect this. 
  * Usage: loadword(target_addr)
- * @param address A memory address. Long for 32 bit systems.
+ * @param address A memory address. 64-bit.
  */
-static inline int loadword(uint32_t address) {
+static inline int loadword(uint64_t address) {
     return *(volatile int *)address;
 }
 
@@ -44,9 +44,9 @@ static inline int loadword(uint32_t address) {
 /**
  * This helper function will perform a memory write to a specific address.
  * Returns nothing. Usage storeword(target_addr).
- * @param address A memory address. Long for 32 bit systems.
+ * @param address A memory address. 64-bit.
  */
-static inline void storeword(uint32_t address, int value) {
+static inline void storeword(uint64_t address, int value) {
     *(volatile int *)address = value;
 }
 

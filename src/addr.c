@@ -16,7 +16,7 @@ int get_AddressSize(int *var) {
 }
 
 
-int get_Offset(long long addr, int numOffsetBits) {
+unsigned int get_Offset(long long addr, int numOffsetBits) {
     long long mask = pow(2,numOffsetBits)-1;
 
     // printf("\n");
@@ -28,7 +28,7 @@ int get_Offset(long long addr, int numOffsetBits) {
 }
 
 
-int get_Index(long long addr, int numOffsetBits, int numIndexBits) {
+unsigned int get_Index(long long addr, int numOffsetBits, int numIndexBits) {
     long long mask = (int)(pow(2,numIndexBits)-1) << numOffsetBits;
 
     // printf("\n");
@@ -41,31 +41,42 @@ int get_Index(long long addr, int numOffsetBits, int numIndexBits) {
 }
 
 
-int get_Tag(long long addr, int numOffsetBits, int numIndexBits) {
+/**
+ * @brief      Generates a tag from an address.
+ *
+ * @param[in]  addr           The address
+ * @param[in]  numOffsetBits  The number of offset bits
+ * @param[in]  numIndexBits   The number of index bits
+ *
+ * @return     The tag portion of the address.
+ */
+unsigned int get_Tag(long long addr, int numOffsetBits, int numIndexBits) {
     long long mask = pow(2,numIndexBits+numOffsetBits)-1;
     mask = ~mask;
-
-    // printf("\n");
-    // printf("tag bits: %d, offset bits: %d, index bits: %d\n", numTagBits, numOffsetBits, numIndexBits);
-    // printf("address (bin): %s\n", int_to_binary_string(addr,64));
-    // printf("mask(bin):     %s\n", int_to_binary_string(mask,64));
-    // printf("tag (bin):     %s\n", int_to_binary_string(mask & addr,64));
-    // printf("adjusted:      %s\n", int_to_binary_string((mask & addr) >> (numOffsetBits+numIndexBits), 64));
-
     return (mask & addr) >> (numOffsetBits + numIndexBits);
 }
 
+
+/**
+ * @brief      Generates an address_t struct from cache information
+ * and a variable passed by reference.
+ *
+ * @param[in]  cache  A cache_t struct.
+ * @param      var    A variable, passed by reference, to generate an address_t from.
+ *
+ * @return     The address.
+ */
 struct address_t get_Address(struct cache_t cache, int *var) {
     struct address_t address;
     char *msg = malloc(100);
 
-    sprintf(msg, "Address of var: 0x%llx", &var);
+    sprintf(msg, "Recieved address for processing: 0x%llx", var);
     debug_msg(msg);
 
 
     /* this seems to consistently offset by 0x74 (116_10) bits. why? */
-    address.addr = &var;
-    address.bitsize = get_AddressSize(&var);
+    address.addr = var;
+    address.bitsize = get_AddressSize(var);
 
     int numOffsetBits = calculateNumOffsetBits(cache);
     int numIndexBits = calculateNumIndexBits(cache);
@@ -79,45 +90,24 @@ struct address_t get_Address(struct cache_t cache, int *var) {
 }
 
 
-struct address_t generate_Evictor(struct cache_t cache, struct address_t victim) {
-    struct address_t evictor = victim;
+int * generate_Evictor(struct cache_t cache, struct address_t victim) {
     char *msg = malloc(100);
 
-    sprintf(msg, "Victim address: 0x%llx", victim.addr);
-    debug_msg(msg);
-    sprintf(msg, "Victim tag: 0x%llx", victim.tag);
-    debug_msg(msg);
-    sprintf(msg, "Victim index / set: 0x%llx", victim.set);
-    debug_msg(msg);
-
-    evictor.tag = evictor.tag + 1; // this is just kind of aritrary
-    unsigned long long tag = evictor.tag;
-    evictor.offset = 0;
-
-    sprintf(msg, "Evictor tag: 0x%llx", evictor.tag);
+    sprintf(msg, "Address of victim: \t\t0x%llx", victim.addr);
     debug_msg(msg);
 
     int numOffsetBits = calculateNumOffsetBits(cache);
     int numIndexBits = calculateNumIndexBits(cache);
-
-    sprintf(msg, "Evictor address: 0x%llx", evictor.addr);
-    debug_msg(msg);
-    evictor.addr = evictor.addr >> numOffsetBits; // zero out the offset
-    evictor.addr = evictor.addr << numOffsetBits;
-    sprintf(msg, "Evictor address: 0x%llx", evictor.addr);
-    debug_msg(msg);
-    evictor.addr = evictor.addr << (numIndexBits + numOffsetBits); // zero out tag
-    sprintf(msg, "Evictor address: 0x%llx", evictor.addr);
-    debug_msg(msg);
-    evictor.addr = evictor.addr >> (numIndexBits + numOffsetBits);
-    sprintf(msg, "Evictor address: 0x%llx", evictor.addr);
-    debug_msg(msg);
-    sprintf(msg, "Evictor tag with bit offset: 0x%llx", (tag << (numOffsetBits + numIndexBits)));
-    debug_msg(msg);
-    evictor.addr = evictor.addr | (tag << (numOffsetBits + numIndexBits));
-
-    sprintf(msg, "Evictor address: 0x%llx", evictor.addr);
+    unsigned long long int add_to_tag = 0x1 << (numOffsetBits + numIndexBits + 1);
+    unsigned long long int evictor_addr = victim.addr + add_to_tag;
+    sprintf(msg, "Candidate evictor address: \t0x%llx", evictor_addr);
     debug_msg(msg);
 
-    return evictor;
+    const void * evictor = (void *)evictor_addr;
+
+    sprintf(msg, "Evictor address: \t\t0x%llx", evictor);
+    debug_msg(msg);
+
+
+    return (int *)evictor;
 }

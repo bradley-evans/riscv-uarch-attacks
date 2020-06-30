@@ -22,11 +22,11 @@ struct address_t {
 int calculateNumOffsetBits(struct cache_t cache);
 int calculateNumIndexBits(struct cache_t cache);
 int get_AddressSize(int *var);
-int get_Offset(long long addr, int numOffsetBits);
-int get_Index(long long addr, int numOffsetBits, int numIndexBits);
-int get_Tag(long long addr, int numOffsetBits, int numIndexBits);
+unsigned int get_Offset(long long addr, int numOffsetBits);
+unsigned int get_Index(long long addr, int numOffsetBits, int numIndexBits);
+unsigned int get_Tag(long long addr, int numOffsetBits, int numIndexBits);
 struct address_t get_Address(struct cache_t cache, int *var);
-struct address_t generate_Evictor(struct cache_t cache, struct address_t victim);
+int * generate_Evictor(struct cache_t cache, struct address_t victim);
 
 
 #endif

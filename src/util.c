@@ -11,7 +11,6 @@
  */
 char* concat(char *s1, char *s2) {
     char *result = malloc(strlen(s1) + strlen(s2) + 1);
-
     strcpy(result, s1);
     strcat(result, s2);
     return result;
@@ -19,17 +18,15 @@ char* concat(char *s1, char *s2) {
 
 
 char* get_StringFromSysFile(char filename[]){
-    printf("made it to real sysstring reader. filename is %s\n", filename);
     FILE *fp;
     char *buff = malloc(100); // TODO: allocate this better
-    printf("initialized the buffer\n");
     fp = fopen(filename, "r");
     if (fp == NULL) {
         return NULL;
     }
     fscanf(fp, "%s", buff);
     fclose(fp);
-    printf("about to return from sysstring reader, buff is %s\n", buff);
+    // printf("about to return from sysstring reader, buff is %s\n", buff);
     return buff;
 }
 
@@ -53,7 +50,6 @@ int get_hartid() {
         line = strtok(NULL, " ");
     }
     line = strtok(NULL, " ");
-
 
     return atoi(line);
 }

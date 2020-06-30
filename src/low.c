@@ -38,12 +38,8 @@ int get_numCaches(int hart_id) {
  * @return     Number of CPUs online per Linux sysfs.
  */
 int get_numCPUOnline() {
-    printf("in numcpu.\n");
     char sysfile[] = "/sys/devices/system/cpu/online";
-    printf("sysfile initialized.\n");
-    char *online = malloc(100*sizeof(char));
-    online = get_StringFromSysFile(sysfile);
-    printf("sysfile string: %s.\n", online);
+    char *online = get_StringFromSysFile(sysfile);
     int numCPU = 0;
 
     if (strcmp(online, "0") == 0) {
@@ -86,7 +82,7 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
     cache.level = atoi(get_StringFromSysFile(concat(workingdir,"level")));
 
     // get cache type (eg data, instruction)
-    cache.type = malloc(sizeof(char));
+    cache.type = malloc(100); // TODO: allocate better
     strcpy(cache.type, get_StringFromSysFile(concat(workingdir,"type")));
 
     // get size of cache, eg 64K
@@ -138,15 +134,13 @@ struct cpu_t get_CPUParameters(int hart_id) {
  */
 struct cpu_t * initialize_cpu() {
     int numCPU = get_numCPUOnline();
-    printf("got numcpu %d.\n", numCPU);
     if (numCPU == -1) {
         return NULL;
     }
     struct cpu_t *cpu;
-    cpu = malloc(sizeof(struct cpu_t));
+    cpu = malloc(numCPU * sizeof(struct cpu_t));
     for(int i=0; i<numCPU; i++) {
-        printf("loop %d\n", i);
-        // cpu[i] = get_CPUParameters(i);
+        cpu[i] = get_CPUParameters(i);
     }
     return cpu;
 }

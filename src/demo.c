@@ -1,12 +1,14 @@
 #include "demo.h"
 
 
+extern char g_DEBUG = 0;
+
+
 int main() {
-
-    struct cpu_t *cpu = malloc(sizeof(struct cpu_t));
-    int numCPU = get_numCPUOnline();
-    int currCPU = get_hartid();
-
+    char buildtime[] = "20200624 2212";
+    char *msg = malloc(100);
+    
+    printf("%s\n", buildtime);
 
     printf("RISC-V UARCH ATTACK DEMONSTRATION\n");
 
@@ -16,11 +18,11 @@ int main() {
      * Initialization Phase
      */
 
-    printf("CPU Initialization: \n");
-    cpu = initialize_cpu();
+    printf("CPU Initialization: \n");    
 
-
-    exit(0);
+    int numCPU = get_numCPUOnline();
+    struct cpu_t *cpu = initialize_cpu();
+    int currCPU = get_hartid();
 
     for(int i=0; i<numCPU; i++) {
         printf("%d:\tcpu%d:\thas %d caches\n", i, cpu[i].hart, cpu[i].numCaches);
@@ -41,11 +43,19 @@ int main() {
     /*
      * Address analysis and generation
      */
+
+    // enable debug messages beyond this point
+    g_DEBUG = 1;
+
     printf("=================================\n");
     printf("Cache address manipulation demonstration.\n\n");
     int myvar = 0;
 
-    struct address_t addr_myvar = get_Address(cpu[currCPU].cache[0], myvar);
+
+    sprintf(msg, "Address of myvar: 0x%llx", &myvar);
+    debug_msg(msg);
+
+    struct address_t addr_myvar = get_Address(cpu[currCPU].cache[0], &myvar);
 
     printf("\tAddress of myvar:\t%llx\n", &myvar);
     printf("\tmyvar Address Size:\t%d bytes, %d bits.\n\n", sizeof(&myvar), sizeof(&myvar)*8);
@@ -60,11 +70,23 @@ int main() {
     printf("\tAddress index:\t\t0x%llx\n", addr_myvar.set);
     printf("\tAddress offset:\t\t0x%llx\n\n", addr_myvar.offset);
 
-    printf("\t*******************************\n");
-    printf("\t* address_t structure created *\n");
-    printf("\t*******************************\n");
+    printf("\t********************************\n");
+    printf("\t* generate an evicting address *\n");
+    printf("\t********************************\n");
 
-    int *evicting_var = generate_Evictor(myvar);
+    struct address_t addr_evictor = generate_Evictor(cpu[currCPU].cache[0], addr_myvar);
+    sprintf(msg, "Got back evictor 0x%llx", addr_evictor.addr);
+    debug_msg(msg);
+    int *evictor = (int *)addr_evictor.addr;
+    sprintf(msg, "Created new evictor var, it is pointed at 0x%llx", &evictor);
+    debug_msg(msg);
 
+    addr_evictor = get_Address(cpu[currCPU].cache[0], &evictor);
+    
 
+    printf("\tAddress:\t\t0x%llx\n", addr_evictor.addr);
+    printf("\tAddress size:\t\t%d-bit\n", addr_evictor.bitsize);
+    printf("\tAddress tag:\t\t0x%llx\n", addr_evictor.tag);
+    printf("\tAddress index:\t\t0x%llx\n", addr_evictor.set);
+    printf("\tAddress offset:\t\t0x%llx\n\n", addr_evictor.offset);
 }

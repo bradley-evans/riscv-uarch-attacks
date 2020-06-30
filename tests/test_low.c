@@ -8,8 +8,7 @@ char* __wrap_get_StringFromSysFile(char filename[]) {
     printf("in mock sysstring reader\n");
     if (g_DISABLE_MOCK) {
         printf("mocking disabled, calling real function\n");
-        char *real = malloc(100);
-        real = __real_get_StringFromSysFile(filename);
+        char *real = __real_get_StringFromSysFile(filename);
         printf("got the real value, %s\n", real);
         return real;
     }
@@ -94,20 +93,12 @@ static void test_get_numCaches(void **state) {
 }
 
 
-static void test_initalize_cpu(void **state) {
-    g_DISABLE_MOCK = 1;
-    struct cpu_t *cpu = initialize_cpu();
-    g_DISABLE_MOCK = 0;
-}
-
-
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_0_get_numCPUOnline),
         cmocka_unit_test(test_16_get_numCPUOnline),
         cmocka_unit_test(test_get_CacheParameters),
         cmocka_unit_test(test_get_numCaches),
-        cmocka_unit_test(test_initalize_cpu),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

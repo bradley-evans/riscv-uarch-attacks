@@ -5,6 +5,7 @@
 #include "low.h"
 #include "util.h"
 #include "addr.h"
+#include "debug_log.h"
 
 
 #endif

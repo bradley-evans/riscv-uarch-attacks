@@ -2,7 +2,7 @@
 
 # make default
 echo "-- Building for native architecture of your current system."
-cmake -Bbuild-default -DBUILD_TESTS=ON
+cmake -Bbuild-default -DBUILD_TESTS=ON -DCMAKE_BUILD_TYP=Debug
 cd build-default
 make
 make test
@@ -12,5 +12,6 @@ cd ..
 echo "-- Building for RISCV."
 cmake -Bbuild-riscv -DCMAKE_C_COMPILER=riscv64-unknown-linux-gnu-gcc
 cd build-riscv
+make clean
 make
 cd ..

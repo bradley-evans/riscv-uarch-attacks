@@ -125,3 +125,6 @@ tags
 # Build folders
 build-default/*
 build-riscv/*
+
+# Sublime
+*sublime*

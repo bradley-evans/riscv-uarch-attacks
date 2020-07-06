@@ -1,9 +1,10 @@
-#ifndef __L1PP_H__
-#define __L1PP_H__
+#ifndef __L1_CONTENTION_H__
+#define __L1_CONTENTION_H__
 
 
 #include <stdio.h>
-#include <time.h>
+#include <pthread.h>
+#include <unistd.h>
 
 
 #include "../util.h"

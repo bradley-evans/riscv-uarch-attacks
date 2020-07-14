@@ -1,13 +1,11 @@
-add_subdirectory(l1pp)
+add_subdirectory(l1_contention)
 
 add_library(low STATIC low.c)
 add_library(util STATIC util.c)
 add_library(addr STATIC addr.c)
 add_library(debug_log STATIC debug_log.c)
-target_link_libraries(low util)
-target_link_libraries(addr low)
-target_link_libraries(addr m)
-target_link_libraries(addr debug_log)
+target_link_libraries(low m util debug_log)
+target_link_libraries(addr low m debug_log)
 
 add_executable(demo demo.c)
-target_link_libraries(demo util low addr debug_log l1pp -static)
+target_link_libraries(demo util low addr debug_log l1_contention -static -lpthread)

@@ -1,3 +1,13 @@
+/**
+ * @defgroup   UTIL utility
+ *
+ * @file       util.c
+ * @brief      This file implements utility.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
+
 #include "util.h"
 
 
@@ -17,6 +27,13 @@ char* concat(char *s1, char *s2) {
 }
 
 
+/**
+ * @brief      Gets the string from a system file.
+ *
+ * @param      filename Location of sysfile.
+ *
+ * @return     The string from the system file.
+ */
 char* get_StringFromSysFile(char filename[]){
     FILE *fp;
     char *buff = malloc(100); // TODO: allocate this better
@@ -55,6 +72,14 @@ int get_hartid() {
 }
 
 
+/**
+ * @brief      Converts an integer to a binary cstring representation.
+ *
+ * @param[in]  num      The integer
+ * @param[in]  numbits  The bitwidth of the resulting cstring.
+ *
+ * @return     A cstring binary representation of num.
+ */
 char* int_to_binary_string(long long num, int numbits) {
     char *binary_string = malloc((numbits+1) * sizeof(char));
 
@@ -64,14 +89,4 @@ char* int_to_binary_string(long long num, int numbits) {
         num = num / 2;
     }
     return binary_string;
-}
-
-
-void delay(int ms) {
-    long pause;
-    clock_t now, then;
-    pause = ms*(CLOCKS_PER_SEC/1000);
-    while( (now-then) < pause ) {
-        now = clock();
-    } 
 }

@@ -1,7 +1,18 @@
+/**
+ * @defgroup   DEMO demo
+ *
+ * @file       demo.c
+ * @brief      Implementation of a demonstration function that steps
+ * through what the library can do.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
+
 #include "demo.h"
 
 
-extern char g_DEBUG = 0;
+extern char g_DEBUG = 0; /*!< Disables debug messages by default. Global, shared with debug_log module. */
 
 
 /**
@@ -41,9 +52,17 @@ void main() {
                     cpu[i].cache[j].type,
                     cpu[i].cache[j].size,
                     cpu[i].cache[j].sets,
-                    cpu[i].cache[j].blocksize);                
+                    cpu[i].cache[j].blocksize);
+            printf("\t\t\tDerived parameters: there are %d offset bits,\n\
+                    %d set bits, and %d tag bits. Address length\n\
+                    is %d.\n",
+                    cpu[i].cache[j].numbits_Offset,
+                    cpu[i].cache[j].numbits_Set,
+                    cpu[i].cache[j].numbits_Tag,
+                    sizeof(void*)*8);            
         }
     }
+
     printf("\n***\tThis process is running on cpu%d\n\n", currCPU);
 
     /*
@@ -75,6 +94,7 @@ void main() {
     printf("\tAddress index:\t\t0x%llx\n", addr_victim.set);
     printf("\tAddress offset:\t\t0x%llx\n\n", addr_victim.offset);
 
+/*
     printf("\t********************************\n");
     printf("\t* generate an evicting address *\n");
     printf("\t********************************\n");
@@ -96,15 +116,17 @@ void main() {
     printf("\n\tWe now have a victim and an address that can perform eviction.\n");
     printf("\t\tVictim:\t\t%llx\n", &victim);
     printf("\t\tEvictor:\t%llx\n\n", evictor);
+*/
 
-
-    printf("=======================\n");
-    printf("Prime and Probe Attack.\n");
-    printf("=======================\n\n");
+    printf("===============================================\n");
+    printf("L1 Cache Contention Generation and Measurement.\n");
+    printf("===============================================\n\n");
 
     // enable debug messages beyond this point
     g_DEBUG = 1;
 
-    l1pp_demo(&victim, evictor);
+    l1_contention_demo(&victim, cpu[currCPU].cache[0]);
+
+    exit(0);
 
 }

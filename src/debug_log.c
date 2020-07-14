@@ -1,3 +1,12 @@
+/**
+ * @defgroup   DEBUG_LOG debug log
+ *
+ * @file       debug_log.c
+ * @brief      This file implements debug log.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
 #include "debug_log.h"
 
 

@@ -1,6 +1,7 @@
 #include "test_low.h"
 
 
+extern char g_DEBUG = 0;
 char g_DISABLE_MOCK = 0;    // global variable to check if we don't want to use
                             // a mocked function
 

@@ -1,83 +1,113 @@
+/**
+ * @defgroup   L1_CONTENTION l1_contention
+ *
+ * @file       l1_contention.c
+ * @brief      Function implementations that measures the effect of L1
+ * cache contention on memory reads. This effect can be used to create
+ * covert channels or side channels.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
 #include "l1_contention.h"
 
 
-char g_VICTIM_RUNNING = 0;
-char g_ATTACK_RUNNING = 0;
+char g_VICTIM_RUNNING = 0;  /*!< Global flag that indicates if victim loop is running. */
+char g_ATTACK_RUNNING = 0;  /*!< Global flag that indicates if attacker loop is running. */
 
 
+/**
+ * @brief      This function performs a memory read and times that memory read.
+ * If the attacking process is able to successfully evict from the cache, then 
+ * we should see the read time spike periodically.
+ *
+ * @param      victim  The victim address.
+ */
 void l1_contention_victim_process(void *victim) {
     
     // victim initializing
+    int v;
+    uint64_t start, end;
+    double time_spent;
+
+    FILE *f = fopen("victim_process_timing_data.csv", "w");
 
     char *msg = malloc(100);
     printf("\tvictim proc, on cpu%d.\n", get_hartid());
+
+    // wait for attacker to begin
     g_VICTIM_RUNNING = 1;
-    while (!g_ATTACK_RUNNING) { } // wait for attacker
+    while (!g_ATTACK_RUNNING) { }
     sprintf(msg, "Victim is running. Target %llx. Attacker running? %d", victim, g_ATTACK_RUNNING);
     debug_msg(msg);
 
     // victim reads from memory
 
-    for (int i=0; i<2; i++) {
-        for (int j=0; j<1000; j++) {
-            asm_load(victim);
-        }
-        printf("\n\ttick...%d\n", i+1);
-        sleep(1);
+    printf("index,runcycles,start,end\n");
+    for (int i=0; i<200; i++) {
+        serialize();
+        start = cycles();
+        v = asm_load(victim);
+        serialize();
+        end = cycles();
+        printf("%d,%d,%d,%d\n", i, end-start, start, end);
     }
+
+    fclose(f);
     
     // victim teardown
 
     g_VICTIM_RUNNING = 0;
-    debug_msg("Victim is done.");
+    debug_msg("Victim is done. File at victim_process_timing_data.csv");
 }
 
 
-void l1_contention_attack_process(void *evictor) {
+/**
+ * @brief      Creates L1 cache contention by periodically flushing
+ * the cache.
+ *
+ * @param      victim  Target address for flushing.
+ * @param[in]  cache   Struct containing cache parameters.
+ */
+void l1_contention_attack_process(void *victim, struct cache_t cache) {
 
     // attack initializing
 
     printf("\tattack proc, on cpu%d.\n", get_hartid());
     char *msg = malloc(100);
-    struct timespec start, end;
-    double time_spent;
     g_ATTACK_RUNNING = 1;
     while (!g_VICTIM_RUNNING)  { } // wait for victim
-    sprintf(msg, "Attacker is running. Evictor %llx. Victim running? %d", evictor, g_VICTIM_RUNNING);
+    sprintf(msg, "Attacker is running. Victim %llx. Victim running? %d", victim, g_VICTIM_RUNNING);
     debug_msg(msg);
 
 
-
-    // attacker times memory accesses
+    // attacker creates contention by flushing
+    // the cache periodically
 
     unsigned long long int count = 0;
     while (g_VICTIM_RUNNING) {
-        count = count + 1;
-
-        clock_gettime(CLOCK_REALTIME, &start);
-        usleep(10000);
-        clock_gettime(CLOCK_REALTIME, &end);
-        time_spent = (((end.tv_sec - start.tv_sec)*1000000000) +
-                     ((end.tv_nsec - start.tv_nsec)))/1000;
-        printf("...read time: %f us, count %d\n", time_spent, count);
-
-        usleep(1000);
+        debug_msg("flush...");
+        flushcache(victim, sizeof(victim), cache);
+        usleep(100);
     }
-
-    printf("count: %lld\n", count);
-
     // attack teardown
 
     g_ATTACK_RUNNING = 0;
-    debug_msg("Attacker is done.");
+    debug_msg("Attacker is done!");
 }
 
 
-void l1_contention_demo(int *victim, int *evictor) {
+/**
+ * @brief      Demo runner for L1 cache contention measurements.
+ *
+ * @param      victim   Target address.
+ * @param[in]  cache    Cache parameters.
+ */
+void l1_contention_demo(int *victim, struct cache_t cache) {
     int cpuid = get_hartid();
     pthread_t vic_thread, att_thread;
     pthread_create(&vic_thread, NULL, &l1_contention_victim_process, victim);
-    pthread_create(&att_thread, NULL, &l1_contention_attack_process, evictor);
+    pthread_create(&att_thread, NULL, &l1_contention_attack_process, victim);
 
     debug_msg("Waiting for victim to complete...");
     pthread_join(vic_thread, NULL);

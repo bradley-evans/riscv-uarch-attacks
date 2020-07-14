@@ -1,3 +1,12 @@
+/**
+ * @defgroup   ADDR address
+ *
+ * @file       addr.h
+ * @brief      Functions that operate on memory addresses.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
 #ifndef __ADDR_H__
 #define __ADDR_H__
 
@@ -10,12 +19,15 @@
 #include "debug_log.h"
 
 
+/**
+ * @brief      Stores information about a particular memory address.
+ */
 struct address_t {
-    unsigned int bitsize;
-    unsigned int offset;
-    unsigned int set;
-    unsigned int tag;
-    unsigned long long int addr;
+    unsigned int bitsize; /*!< Bitwidth of the memory address, e.g. 64bit */
+    uint64_t offset; /*!< Offset portion of the address. */
+    uint64_t set; /*!< Set or index portion of the address. */
+    uint64_t tag; /*!< Tag portion of the address. */
+    uint64_t addr; /*!< The actual address. */
 };
 
 

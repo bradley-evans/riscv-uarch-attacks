@@ -1,8 +1,17 @@
+/**
+ * @defgroup   LOW low
+ *
+ * @file       low.c
+ * @brief      This file implements low.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
 #include "low.h"
 
 
 /**
- * @brief      Gets the number caches.
+ * @brief      Gets the number of caches.
  *
  * @param[in]  hart_id  The hart identifier
  *
@@ -102,6 +111,15 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
         cache.blocksize = atoi(blocksize);
     }
 
+    // derived parameters
+    uint64_t fullmask = 0xFFFFFFFFFFFFFFFF;
+    cache.numbits_Offset =  log2(cache.blocksize);
+    cache.numbits_Set =     log2(cache.sets);
+    cache.numbits_Tag =     sizeof(void*);
+    cache.mask_Offset =     (~(fullmask << cache.numbits_Offset));
+    cache.mask_Tag =        (fullmask << (cache.numbits_Set + cache.numbits_Offset));
+    cache.mask_Set =        (~(cache.mask_Tag | cache.mask_Offset));
+
     return cache;
 }
 
@@ -143,4 +161,12 @@ struct cpu_t * initialize_cpu() {
         cpu[i] = get_CPUParameters(i);
     }
     return cpu;
+}
+
+
+/**
+ * @brief      Dummy function that raises a debug error when used.
+ */
+void notimplemented() {
+    debug_msg("Not implemented.");
 }

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# make default
-echo "-- Building for native architecture of your current system."
-cmake -Bbuild-default -DBUILD_TESTS=ON -DCMAKE_BUILD_TYP=Debug
-cd build-default
-make
-make test
+# initial cleanup
+rm victim_process_timing_data.csv
+
+# documentation
+cd doc
+doxygen Doxyfile
 cd ..
 
 # make riscv
@@ -14,4 +14,12 @@ cmake -Bbuild-riscv -DCMAKE_C_COMPILER=riscv64-unknown-linux-gnu-gcc
 cd build-riscv
 make clean
 make
+cd ..
+
+# make default
+echo "-- Building for native architecture of your current system."
+cmake -Bbuild-default -DBUILD_TESTS=ON -DCMAKE_BUILD_TYP=Debug
+cd build-default
+make
+make test
 cd ..

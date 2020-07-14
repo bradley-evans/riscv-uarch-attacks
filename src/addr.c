@@ -1,3 +1,13 @@
+/**
+ * @defgroup   ADDR address
+ *
+ * @file       addr.c
+ * @brief      Implementation of functions that operate on memory addresses.
+ *
+ * @author     Bradley Evans
+ * @date       June 2020
+ */
+
 #include "addr.h"
 
 
@@ -18,25 +28,12 @@ int get_AddressSize(int *var) {
 
 unsigned int get_Offset(long long addr, int numOffsetBits) {
     long long mask = pow(2,numOffsetBits)-1;
-
-    // printf("\n");
-    // printf("address (bin): %s\n", int_to_binary_string(addr,64));
-    // printf("mask(bin):     %s\n", int_to_binary_string(mask,64));
-    // printf("offset (bin):  %s\n", int_to_binary_string(mask & addr,64));
-
     return mask & addr;
 }
 
 
 unsigned int get_Index(long long addr, int numOffsetBits, int numIndexBits) {
     long long mask = (int)(pow(2,numIndexBits)-1) << numOffsetBits;
-
-    // printf("\n");
-    // printf("address (bin): %s\n", int_to_binary_string(addr,64));
-    // printf("mask(bin):     %s\n", int_to_binary_string(mask,64));
-    // printf("index (bin):   %s\n", int_to_binary_string(mask & addr,64));
-    // printf("adjusted:      %s\n", int_to_binary_string((mask & addr) >> numOffsetBits, 64));
-
     return (mask & addr) >> numOffsetBits;
 }
 
@@ -64,7 +61,7 @@ unsigned int get_Tag(long long addr, int numOffsetBits, int numIndexBits) {
  * @param[in]  cache  A cache_t struct.
  * @param      var    A variable, passed by reference, to generate an address_t from.
  *
- * @return     The address.
+ * @return     A struct describing the different fields of the address.
  */
 struct address_t get_Address(struct cache_t cache, int *var) {
     struct address_t address;
@@ -90,6 +87,17 @@ struct address_t get_Address(struct cache_t cache, int *var) {
 }
 
 
+/**
+ * @brief      Creates a candidate address in the same set as a "victim" address.
+ * In theory, this address could evict the victim address by occupying the same
+ * cache line, but this doesn't work. It will instead segmentation fault, more
+ * often than not.
+ *
+ * @param[in]  cache   Cache parameters.
+ * @param[in]  victim  Victim address we would like to evict.
+ *
+ * @return     A candidate "evictor" address.
+ */
 int * generate_Evictor(struct cache_t cache, struct address_t victim) {
     char *msg = malloc(100);
 

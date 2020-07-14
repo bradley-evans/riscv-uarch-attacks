@@ -5,6 +5,9 @@
 #include <math.h>
 
 
+/**
+ * @brief      Replicates the cache_t struct in low for testing.
+ */
 struct cache_t {
     int ways; /*!< Number of cache ways. */
     int level; /*!< Level of this cache, eg L1. */
@@ -39,6 +42,11 @@ char * printzeros(uint64_t num) {
 }
 
 
+/**
+ * @brief      Helper function that creates a sample cache_t object for us to use here.
+ *
+ * @return     Example cache parameters.
+ */
 struct cache_t initialize_cache() {
     struct cache_t cache;
 
@@ -88,7 +96,15 @@ struct cache_t initialize_cache() {
 }
 
 
-
+/**
+ * @brief      A prototype / experimental flushcache routine.
+ * 
+ * Meant for testing, actual implmenentation would be in src/low.
+ *
+ * @param[in]  addr   The address to be evicted
+ * @param[in]  sz     The size of the data held at address
+ * @param[in]  cache  The cache parameters.
+ */
 static void _riscv_flushCache_pt(uint64_t addr, uint64_t sz, struct cache_t cache) {
     printf("-- Flushing the cache.\n");
     printf("\taddr: 0x%llx, sz: %d bytes\n", addr, sz);
@@ -139,7 +155,10 @@ static void _riscv_flushCache_pt(uint64_t addr, uint64_t sz, struct cache_t cach
 }
 
 
-int main() {
+/**
+ * @brief      Main routine that tests the flushcache prototype.
+ */
+void main() {
     printf("-- Testing RISCV flushcache prototype.\n");
 
     struct cache_t cache = initialize_cache();
@@ -147,8 +166,5 @@ int main() {
     int *victim = malloc(sizeof(int));
     printf("-- Victim address generated at 0x%x, size %d.\n", victim, sizeof(victim));
     _riscv_flushCache_pt((uint64_t)victim, sizeof(victim), cache);
-
-
-    return 0;
 
 }

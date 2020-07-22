@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # initial cleanup
 rm victim_process_timing_data.csv
 
@@ -23,3 +25,6 @@ cd build-default
 make
 make test
 cd ..
+
+# prototype
+# spike -p1 --dc=64:4:4096 prototypes/pk build-riscv/prototypes/flushcache/prototype_flushcache

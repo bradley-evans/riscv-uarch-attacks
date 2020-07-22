@@ -131,4 +131,7 @@ doc/latex/
 # Sublime
 *sublime*
 
+# Data
+*.csv
+
 

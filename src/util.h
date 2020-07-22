@@ -30,12 +30,15 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdint.h>
 
 
 char* concat(char *s1, char *s2);
 char* get_StringFromSysFile(char * filename);
 int get_hartid();
 char* int_to_binary_string(long long num, int numbits);
+// char* printbin(uint64_t num);
+// char* printzeros(uint64_t num);
 
 
 #endif

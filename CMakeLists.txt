@@ -13,7 +13,6 @@ if (BUILD_TESTS)
 endif()
 
 if (DCMAKE_C_COMPILER EQUAL riscv64-unknown-linux-gnu-gcc)
-    message("hi from riscv")
     find_program(RV64_COMPILER_PRESENT riscv64-unknown-linux-gnu-gcc)
     if (!RV64_COMPILER_PRESENT)
         message("RISC-V compiler riscv64-unknown-linux-gnu-gcc not found.")

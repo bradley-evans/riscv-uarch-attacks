@@ -19,7 +19,7 @@ extern char g_DEBUG = 0; /*!< Disables debug messages by default. Global, shared
  * @brief      Demo routine.
  */
 void main() {
-    char buildtime[] = "20200624 2212";
+    char buildtime[] = "20200715 1432";
     char *msg = malloc(100);
     
     printf("BUILD: %s\n", buildtime);
@@ -63,11 +63,19 @@ void main() {
         }
     }
 
-    printf("\n***\tThis process is running on cpu%d\n\n", currCPU);
+    printf("\n***\tThis process is running on cpu%d\n", currCPU);
 
     /*
      * Address analysis and generation
      */
+
+    struct cache_t tgt_cache = cpu[currCPU].cache[0];
+    if (strcmp(tgt_cache.type, "Instruction") == 0) {
+        tgt_cache = cpu[currCPU].cache[1];
+
+    }
+
+    printf("\n***\tThe cache loaded as target is a %s cache.\n\n", tgt_cache.type);
 
     printf("=========================================\n");
     printf("Cache address manipulation demonstration.\n");
@@ -79,7 +87,7 @@ void main() {
     sprintf(msg, "Address of victim: 0x%llx", &victim);
     debug_msg(msg);
 
-    struct address_t addr_victim = get_Address(cpu[currCPU].cache[0], &victim);
+    struct address_t addr_victim = get_Address(tgt_cache, &victim);
 
     printf("\tAddress of victim:\t%llx\n", &victim);
     printf("\tvictim Address Size:\t%d bytes, %d bits.\n\n", sizeof(&victim), sizeof(&victim)*8);
@@ -93,30 +101,7 @@ void main() {
     printf("\tAddress tag:\t\t0x%llx\n", addr_victim.tag);
     printf("\tAddress index:\t\t0x%llx\n", addr_victim.set);
     printf("\tAddress offset:\t\t0x%llx\n\n", addr_victim.offset);
-
-/*
-    printf("\t********************************\n");
-    printf("\t* generate an evicting address *\n");
-    printf("\t********************************\n");
-
-    int *evictor = generate_Evictor(cpu[currCPU].cache[0], addr_victim);
-    sprintf(msg, "Evictor: 0x%llx", evictor);
-    debug_msg(msg);
-
-    struct address_t addr_evictor = get_Address(cpu[currCPU].cache[0], evictor);
     
-    printf("\tAddress:\t\t0x%llx\n", addr_evictor.addr);
-    printf("\tAddress size:\t\t%d-bit\n", addr_evictor.bitsize);
-    printf("\tAddress tag:\t\t0x%llx\n", addr_evictor.tag);
-    printf("\tAddress index:\t\t0x%llx\n", addr_evictor.set);
-    printf("\tAddress offset:\t\t0x%llx\n\n", addr_evictor.offset);
-
-    printf("\tThe eviction address contains (char): [%c], (int): [%d]\n", evictor, evictor);
-
-    printf("\n\tWe now have a victim and an address that can perform eviction.\n");
-    printf("\t\tVictim:\t\t%llx\n", &victim);
-    printf("\t\tEvictor:\t%llx\n\n", evictor);
-*/
 
     printf("===============================================\n");
     printf("L1 Cache Contention Generation and Measurement.\n");
@@ -125,7 +110,7 @@ void main() {
     // enable debug messages beyond this point
     g_DEBUG = 1;
 
-    l1_contention_demo(&victim, cpu[currCPU].cache[0]);
+    l1_contention_demo(&victim, tgt_cache);
 
     exit(0);
 

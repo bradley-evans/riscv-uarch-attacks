@@ -90,3 +90,39 @@ char* int_to_binary_string(long long num, int numbits) {
     }
     return binary_string;
 }
+
+// /**
+//  * @brief      Different implementation using itoa to convert numbers
+//  * to binary strings.
+//  * 
+//  * I made this when I made the flushcache prototype, it seems to work
+//  * better than the original so I incorporated it with the intention of
+//  * replacing the original,
+//  *
+//  * @param[in]  num   The number
+//  *
+//  * @return     cstring of number in binary
+//  */
+// char * printbin(uint64_t num) {
+//     char *buf = malloc(65);
+//     itoa(num, buf, 2);
+//     return buf;
+// }
+
+
+// /**
+//  * @brief      Prints zeros to pad printbin() strings.
+//  *
+//  * @param[in]  num   The number of zeros.
+//  *
+//  * @return     A cstring of length num filled only with zeros.
+//  */
+// char * printzeros(uint64_t num) {
+//     char *buf = malloc(num+1);
+//     for (int i=0; i<num; i++) {
+//         buf[i] = '0';
+//     }
+//     buf[num] = '\0';
+//     //printf("num: %d, %s\n", num, buf);
+//     return buf;
+// }

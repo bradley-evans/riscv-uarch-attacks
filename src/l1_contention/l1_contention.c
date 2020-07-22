@@ -72,24 +72,21 @@ void l1_contention_victim_process(void *victim) {
 void l1_contention_attack_process(void *victim, struct cache_t cache) {
 
     // attack initializing
-
     printf("\tattack proc, on cpu%d.\n", get_hartid());
     char *msg = malloc(100);
     g_ATTACK_RUNNING = 1;
     while (!g_VICTIM_RUNNING)  { } // wait for victim
-    sprintf(msg, "Attacker is running. Victim %llx. Victim running? %d", victim, g_VICTIM_RUNNING);
+    sprintf(msg, "Attacker is running. Victim %llx. Victim running? %d", (uint64_t)victim, g_VICTIM_RUNNING);
     debug_msg(msg);
-
 
     // attacker creates contention by flushing
     // the cache periodically
 
-    unsigned long long int count = 0;
     while (g_VICTIM_RUNNING) {
-        debug_msg("flush...");
-        flushcache(victim, sizeof(victim), cache);
+        flushcache((uint64_t)victim, (uint64_t)sizeof(victim), cache);
         usleep(100);
     }
+
     // attack teardown
 
     g_ATTACK_RUNNING = 0;
@@ -106,13 +103,22 @@ void l1_contention_attack_process(void *victim, struct cache_t cache) {
 void l1_contention_demo(int *victim, struct cache_t cache) {
     int cpuid = get_hartid();
     pthread_t vic_thread, att_thread;
+    
+    // Spawn victim thread
     pthread_create(&vic_thread, NULL, &l1_contention_victim_process, victim);
-    pthread_create(&att_thread, NULL, &l1_contention_attack_process, victim);
+    
+    // Spawn attacker thread
+    // Threading here may be causing segfault?
+    // Run it in parent process instead, I guess.
+    // pthread_create(&att_thread, NULL, &l1_contention_attack_process, victim);
+    l1_contention_attack_process(victim, cache);
+    debug_msg("Attack function ended, back in l1_contention_demo.");
+
 
     debug_msg("Waiting for victim to complete...");
     pthread_join(vic_thread, NULL);
-    debug_msg("Victim done! Waiting for attacker to complete...");
-    pthread_join(att_thread, NULL);
+    // debug_msg("Victim done! Waiting for attacker to complete...");
+    // pthread_join(att_thread, NULL);
     debug_msg("Attacker and victim threads exited.");
 
     printf("\tL1 Contention Demonstration Complete.\n");

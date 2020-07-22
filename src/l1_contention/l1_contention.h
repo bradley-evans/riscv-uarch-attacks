@@ -21,4 +21,9 @@
 #include "../low.h"
 
 
+void l1_contention_victim_process(void *victim);
+void l1_contention_attack_process(void *victim, struct cache_t cache);
+void l1_contention_demo(int *victim, struct cache_t cache);
+
+
 #endif

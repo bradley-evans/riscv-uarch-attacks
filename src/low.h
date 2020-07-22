@@ -180,31 +180,32 @@ static inline uint64_t _riscv_rdinstret() {
  * @param[in]  cache      L1 DCache parameters
  */
 static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache ) {
-    char *msg = malloc(100);
+    // uint8_t has size 1 (bytes)
+    uint64_t start_cycle = cycles();
+    uint8_t dummyMem[5 * cache.size]; //!< Creates an array at least the size of the cache.
 
-    sprintf(msg, "addr: 0x%llx, sz: %d bytes", addr, sz);
-    debug_msg("riscv flushcache");
-
-    // uint8_t dummyMem[5 * cache.size]; /*!< Creates an array at least the size of the cache. */
-
-    // uint64_t numSetsClear = sz >> cache.numbits_Offset;
-    // if ( (sz & cache.mask_Offset) != 0 ) {
-    //     numSetsClear += 1;
-    // }
-    // if (numSetsClear > cache.sets) {
-    //     // Flush the entire cache, no rollever.
-    //     numSetsClear = cache.sets;
-    // }
-
-    // uint8_t dummyVar = 0; !< Unused dummy variable 
-    // uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;
-
-    // for (uint64_t i=0; i<numSetsClear; ++i) {
-    //     uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
-    //     for (uint64_t j=0; j<4*cache.ways; ++j) {
-    //         dummyVar = *((uint64_t*)(alignedMem + setOffset));
-    //     }
-    // }
+    // Determine the number of blocks we need to clear.
+    uint64_t numSetsClear = sz >> cache.numbits_Offset; //!< Number of blocks we need to clear.
+    if ( (sz & cache.mask_Offset) != 0 ) {
+        numSetsClear += 1;
+    }
+    if (numSetsClear > cache.sets) {
+        // Case when the number of sets to clear
+        // is greater than the size of the cache, e.g.
+        // an array with a size larger than the cache.
+        // Flush the entire cache, no rollover.
+        numSetsClear = cache.sets;
+    }
+    uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
+    uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;  //!< Memory space aligned on the first space in dummyMem with set and offset = 0 
+    for (uint64_t i=0; i<numSetsClear; ++i) {
+        uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
+        for (uint64_t j=0; j<4*cache.ways; ++j) {
+            uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);
+            dummyVar = *((uint8_t*)(alignedMem + setOffset + wayOffset));
+        }
+    }
+    uint64_t end_cycle = cycles();
 }
 
 
@@ -220,9 +221,6 @@ static uint64_t _riscv_rdcycle() {
         "rdcycle %[cycles]\n"
         : [cycles]"=r" (cycles)
     );
-    // char *msg = malloc(100);
-    // sprintf(msg, "cycles: %d", cycles);
-    // debug_msg(msg);
     return cycles;
 }
 
@@ -233,7 +231,6 @@ static uint64_t _riscv_rdcycle() {
 /*
  * Function prototypes for device tree reader
  */
-
 int get_numCaches(int hart_id);
 int get_numCPUOnline();
 struct cache_t get_CacheParameters(int hart_id, int cache_index);

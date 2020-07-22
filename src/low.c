@@ -94,15 +94,11 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
     cache.type = malloc(100); // TODO: allocate better
     strcpy(cache.type, get_StringFromSysFile(concat(workingdir,"type")));
 
-    // get size of cache, eg 64K
-    sscanf(get_StringFromSysFile(concat(workingdir,"size")),"%d%s",&cache.size,buff);
-    if (strcmp(buff, "K") == 0) { 
-        cache.size = 1024 * cache.size; 
-        buff[0] = '\0';
-    }
-
     // get number of sets
     cache.sets = atoi(get_StringFromSysFile(concat(workingdir,"number_of_sets")));
+
+    // get cache size as derivation from num sets, num ways
+    cache.size = cache.sets * cache.ways * cache.blocksize;
 
     char *blocksize = get_StringFromSysFile("/sys/devices/system/memory/block_size_bytes");
     if (blocksize == NULL) {

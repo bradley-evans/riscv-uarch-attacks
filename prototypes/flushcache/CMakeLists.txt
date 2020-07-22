@@ -1,1 +1,2 @@
-add_executable(prototype prototype_flushcache.c)
+add_executable(prototype_flushcache prototype_flushcache.c)
+target_link_libraries(prototype_flushcache m -static)

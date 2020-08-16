@@ -14,7 +14,59 @@ RISC-V Processors," currently unpublished (as of Aug 2020).
 
 TODO
 
-# Structure from This Locatio
+# Structure from This Location
 
 | item              | description                    |
 |-------------------|--------------------------------|
+| doc/              | Doxygen-generated documentation and thesis LaTeX. |
+| prototypes/       | Small code prototypes used to build some functions. |
+| src/              | The actual source code. |
+| testenv/          | A QEMU-based test environment. |
+| tests/            | Unit tests. |
+| build             | Build script. |
+| build-rv-only     | Builds the project for RISC-V only. |
+| pushtoaws.sh      | Script to push a new build to AWS FireSim. |
+|-------------------|--------------------------------|
+
+# Usage
+
+## Recommendations and Requirements
+
+This repository was tested on a machine running Ubuntu 20.04 with a build of
+the `riscv-gnu-toolchain` available from their 
+[GitHub repository](https://github.com/riscv/riscv-gnu-toolchain). You need to
+have this repository set and the `$RISCV` environment variable set to point to
+the compiled toolchain. This will use `riscv64-unknown-linux-gnu-gcc` as its
+compiler for RISC-V binaries.
+
+## Building this Project
+
+Demonstration binaries, named `demo`, are built for the native architecture
+and for the RISC-V architecture by invoking `./build` from the root directory
+of this repository.
+
+The `demo` binary will be found in `build-default/src/demo` and 
+`build-riscv/src/demo` respectively.
+
+## Running RISC-V Binaries
+
+### In QEMU
+
+QEMU does not simulate caches. However, we found it useful to test that a
+binary will run at all before going to the trouble of moving a binary over to
+RISC-V hardware or into some other cycle accurate simualtion.
+
+The `build-rv-only` script will open an `ext2` image in `testenv` for you and
+place a demo binary inside of there at `/root/demo`. There is a README inside
+of `testenv` that explains what to do from there.
+
+### On `fpga-zynq`
+
+We had a lot of initial success testing the RISC-V binaries we generated on a
+[Zedboard](http://zedboard.org/product/zedboard) using the 
+[`fpga-zynq`](https://github.com/ucb-bar/fpga-zynq) repository to instantiate a
+Rocket core on the FPGA. That is one option.
+
+### On Firesim
+
+

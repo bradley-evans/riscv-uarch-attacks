@@ -128,6 +128,7 @@ build-riscv/*
 doc/html/
 doc/latex/
 output/*
+CMakeFiles/*
 
 # Sublime
 *sublime*

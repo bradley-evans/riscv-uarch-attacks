@@ -19,7 +19,7 @@ extern char g_DEBUG = 0; /*!< Disables debug messages by default. Global, shared
  * @brief      Demo routine.
  */
 void main() {
-    char buildtime[] = "20200715 1432";
+    char buildtime[] = "20200815 1500";
     char *msg = malloc(100);
     
     printf("BUILD: %s\n", buildtime);
@@ -107,10 +107,19 @@ void main() {
     printf("L1 Cache Contention Generation and Measurement.\n");
     printf("===============================================\n\n");
 
+    l1_contention_demo(&victim, tgt_cache);
+
+
+
+    printf("====================================================\n");
+    printf("Prime and Probe, L1 Data Cache (L1D$) Demonstration.\n");
+    printf("====================================================\n\n");
+
+
     // enable debug messages beyond this point
     g_DEBUG = 1;
 
-    l1_contention_demo(&victim, tgt_cache);
+    l1pp_demo(tgt_cache);
 
     exit(0);
 

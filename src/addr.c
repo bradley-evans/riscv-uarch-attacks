@@ -72,7 +72,7 @@ struct address_t get_Address(struct cache_t cache, int *var) {
 
 
     /* this seems to consistently offset by 0x74 (116_10) bits. why? */
-    address.addr = var;
+    address.addr = (uint64_t)var;
     address.bitsize = get_AddressSize(var);
 
     int numOffsetBits = calculateNumOffsetBits(cache);

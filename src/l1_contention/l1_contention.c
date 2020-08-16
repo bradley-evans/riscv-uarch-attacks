@@ -28,7 +28,6 @@ void l1_contention_victim_process(void *victim) {
     // victim initializing
     int v;
     uint64_t start, end;
-    double time_spent;
 
     FILE *f = fopen("victim_process_timing_data.csv", "w");
 
@@ -81,7 +80,6 @@ void l1_contention_attack_process(void *victim, struct cache_t cache) {
 
     // attacker creates contention by flushing
     // the cache periodically
-
     while (g_VICTIM_RUNNING) {
         flushcache((uint64_t)victim, (uint64_t)sizeof(victim), cache);
         usleep(100);
@@ -107,9 +105,14 @@ void l1_contention_demo(int *victim, struct cache_t cache) {
     // Spawn victim thread
     pthread_create(&vic_thread, NULL, &l1_contention_victim_process, victim);
     
+    /* 
+     * Originally I wanted to spawn an attacker thread and a victim
+     * thread, but the attacker thread would segfault once we called
+     * the flushcache routine. Placing the attack function back into
+     * the main process resolved the segfault.
+     */
+
     // Spawn attacker thread
-    // Threading here may be causing segfault?
-    // Run it in parent process instead, I guess.
     // pthread_create(&att_thread, NULL, &l1_contention_attack_process, victim);
     l1_contention_attack_process(victim, cache);
     debug_msg("Attack function ended, back in l1_contention_demo.");
@@ -122,6 +125,4 @@ void l1_contention_demo(int *victim, struct cache_t cache) {
     debug_msg("Attacker and victim threads exited.");
 
     printf("\tL1 Contention Demonstration Complete.\n");
-
-    pthread_exit(NULL);
 }

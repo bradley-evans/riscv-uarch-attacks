@@ -9,3 +9,8 @@ cd build-riscv
 make clean
 make
 cd ..
+
+# copy to testenv
+sudo mount testenv/rootfs.ext2 /mnt/rvdisk
+sudo cp build-riscv/src/demo /mnt/rvdisk/root/
+sudo umount /mnt/rvdisk

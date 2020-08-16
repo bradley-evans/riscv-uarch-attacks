@@ -25,6 +25,13 @@ int get_numCaches(int hart_id) {
     char target[50];
     sprintf(target, "/sys/devices/system/cpu/cpu%d/cache/", hart_id);
 
+    DIR* d = opendir(target);
+    if(d==NULL) {
+        printf("No caches detected. Are you in an emulator?\n");
+        printf("Generating a default number of caches.\n");
+        return 2;
+    }
+
     dirp = opendir(target);
     
     if (dirp == NULL) {
@@ -83,6 +90,32 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
             hart_id, cache_index);
     workingdir = calloc(strlen(buff), sizeof(char));
     strcpy(workingdir, buff);
+
+    DIR* dir = opendir(workingdir);
+    if(dir==NULL) {
+        printf("No caches detected. Are you in an emulator?\n");
+        printf("Generating a default cache object.\n");
+        if (cache_index==0) {
+            // generate a emulator default instr cache
+            cache.ways=4;
+            cache.level=1;
+            cache.type=malloc(100);
+            strcpy(cache.type,"Instruction");
+            cache.sets=64;
+            cache.size = cache.sets * cache.ways * cache.blocksize;
+            cache.blocksize=4096;
+        } else if (cache_index==1) {
+            // generate a emulator default data cache
+            cache.ways=4;
+            cache.level=1;
+            cache.type=malloc(100);
+            strcpy(cache.type,"Data");
+            cache.sets=64;
+            cache.size = cache.sets * cache.ways * cache.blocksize;
+            cache.blocksize=4096;
+        }
+        return cache;
+    }
 
     // get cache ways of associativity
     cache.ways = atoi(get_StringFromSysFile(concat(workingdir,"ways_of_associativity")));

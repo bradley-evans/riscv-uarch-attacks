@@ -161,6 +161,22 @@ static inline uint64_t _riscv_rdinstret() {
 
 
 /**
+ * @brief      Returns number of cycles elapsed since some arbitrary point of time.
+ *
+ * @return     The cycle count.
+ */
+static uint64_t _riscv_rdcycle() {
+    uint64_t cycles = 0;
+    asm volatile(   
+        "fence\n"
+        "rdcycle %[cycles]\n"
+        : [cycles]"=r" (cycles)
+    );
+    return cycles;
+}
+
+
+/**
  * @brief      Will flush an L1 DCache associated with addr.
  * 
  * Taken from a BOOM core attack demonstration located at
@@ -181,7 +197,7 @@ static inline uint64_t _riscv_rdinstret() {
  */
 static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache ) {
     // uint8_t has size 1 (bytes)
-    uint64_t start_cycle = cycles();
+    uint64_t start_cycle = _riscv_rdcycle();
     uint8_t dummyMem[5 * cache.size]; //!< Creates an array at least the size of the cache.
 
     // Determine the number of blocks we need to clear.
@@ -197,7 +213,8 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
         numSetsClear = cache.sets;
     }
     uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
-    uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;  //!< Memory space aligned on the first space in dummyMem with set and offset = 0 
+    uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;  //!< Memory space aligned on the first space in dummyMem with set and offset = 0
+
     for (uint64_t i=0; i<numSetsClear; ++i) {
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
         for (uint64_t j=0; j<4*cache.ways; ++j) {
@@ -205,23 +222,7 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
             dummyVar = *((uint8_t*)(alignedMem + setOffset + wayOffset));
         }
     }
-    uint64_t end_cycle = cycles();
-}
-
-
-/**
- * @brief      Returns number of cycles elapsed since some arbitrary point of time.
- *
- * @return     The cycle count.
- */
-static uint64_t _riscv_rdcycle() {
-    uint64_t cycles = 0;
-    asm volatile(   
-        "fence\n"
-        "rdcycle %[cycles]\n"
-        : [cycles]"=r" (cycles)
-    );
-    return cycles;
+    uint64_t end_cycle = _riscv_rdcycle();
 }
 
 
@@ -254,6 +255,12 @@ void notimplemented();
  */
 
 #ifdef __riscv
+    #undef asm_load
+    #undef asm_store
+    #undef serialize
+    #undef flushcache
+    #undef cycles
+    
     #define asm_load(arg) primitive_load(arg)
     #define asm_store(arg) primitive_store(arg)
     #define serialize() _riscv_rdinstret()
@@ -263,10 +270,14 @@ void notimplemented();
 
 
 #ifdef __x86_64
+    #undef asm_load
+    #undef asm_store
+    #undef serialize
+    #undef cycles
+
     #define asm_load(arg) primitive_load(arg)
     #define asm_store(arg) primitive_store(arg)
     #define serialize() _x86_64_cpuid()
-    #define flushcache(addr, sz, cache) debug_msg("Not implemented in this architecture.")
     #define cycles() _x86_64_rdtsc()
 #endif
 

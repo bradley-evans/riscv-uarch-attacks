@@ -19,6 +19,7 @@
 #include "addr.h"
 #include "debug_log.h"
 #include "l1_contention/l1_contention.h"
+#include "l1pp/l1pp.h"
 
 
 #endif

@@ -127,11 +127,10 @@ build-default/*
 build-riscv/*
 doc/html/
 doc/latex/
+output/*
 
 # Sublime
 *sublime*
 
 # Data
 *.csv
-
-

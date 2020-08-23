@@ -97,7 +97,7 @@ struct l1pp_result_t * l1pp_probe(uint8_t *primed_memory, struct cache_t cache) 
  * @brief      Victim function that will read some arbitrary
  * memory location
  */
-void l1pp_victim () {
+void * l1pp_victim () {
 
     uint8_t victim = 0;
     uint8_t dummy = 1;

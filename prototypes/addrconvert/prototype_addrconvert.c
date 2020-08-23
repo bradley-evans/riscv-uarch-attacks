@@ -3,7 +3,7 @@
  *
  * @brief      This file implements prototype addrconvert.
  *
- * This solution based in part on the StackExchange answer "Is there any API for
+ * This solution based in on the StackExchange answer "Is there any API for
  * determining the physical address from virtual address in Linux?"
  * https://stackoverflow.com/questions/5748492/is-there-any-api-for-determining-the-physical-address-from-virtual-address-in-li
  * 

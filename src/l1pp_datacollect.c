@@ -1,20 +1,33 @@
 #include "l1pp_datacollect.h"
 
 
+char g_DEBUG;
+
+
 char g_VICTIM_RUNNING = 0;  /*!< Global flag that indicates if victim loop is running. */
 char g_ATTACK_RUNNING = 0;  /*!< Global flag that indicates if attacker loop is running. */
 char g_VICTIM_START_READ = 0;
-extern char g_DEBUG = 0;
+char g_VICTIM_READ_DONE = 0;
 
 
-uint64_t l1pp_dc_victim() {
+void * l1pp_dc_victim() {
 
     uint8_t victimMem1 = 1;
     uint8_t victimMem2 = 2;
     
+    FILE *f = fopen("l1pp_datacollection_victim.csv", "w");
+    fprintf(f, "virt,phys\n");
+    fprintf(f, "0x%x,0x%x\n", &victimMem1, virt_to_phys((uint64_t)&victimMem1,getpid()));
+    fprintf(f, "0x%x,0x%x\n", &victimMem2, virt_to_phys((uint64_t)&victimMem2,getpid()));
+    fclose(f);
+
+    printf("\tStarted victim process. Victim is reading 0x%x and 0x%x.\n", &victimMem1, &victimMem2);
+
     g_VICTIM_RUNNING = 1;
 
     while (!g_ATTACK_RUNNING) { } // wait for attack to start
+
+    printf("\tAttack process showing as initialized from victim.\n");
 
     while (g_ATTACK_RUNNING) {
         switch(g_VICTIM_START_READ) {
@@ -26,6 +39,7 @@ uint64_t l1pp_dc_victim() {
                 victimMem2 = victimMem2 + victimMem1;
                 victimMem1 = 1;
                 victimMem2 = 2;
+                g_VICTIM_READ_DONE = 1;
                 g_VICTIM_START_READ = 0;
             default:
                 // do nothing
@@ -42,6 +56,9 @@ void l1pp_datacollection(int numruns) {
     uint8_t *primed_memory;
     struct l1pp_result_t *rundata;
 
+    printf("\t[Collecting Data]\n");
+    printf("\tData collection process has started.\n");
+
     FILE *f = fopen("l1pp_datacollection_attacker.csv", "w");
     
     // Spawn victim thread
@@ -50,20 +67,35 @@ void l1pp_datacollection(int numruns) {
     g_ATTACK_RUNNING = 1;
     while (!g_VICTIM_RUNNING) { } // wait for victim to start
 
+
+    printf("\tVictim has initialized. Starting attack.\n");
     for (int i=0; i<numruns; i++) {
+
+        printf("\r\tRun %d of %d...     ",i+1,numruns);
+        fflush(stdout);
         // prime
         primed_memory = l1pp_prime(cache);
         // run victim
-        g_VICTIM_START_READ = 1;
-        while (g_VICTIM_START_READ) { } // wait for victim to do its reads.
+        g_VICTIM_START_READ = 1;        // tell victim to do its memory reads
+        while (!g_VICTIM_READ_DONE) { } // wait for victim to do its reads.
+        g_VICTIM_READ_DONE = 0;         // clear read done flag afterward
         // probe
         rundata = l1pp_probe(primed_memory, cache);
         // save run data
         for (int j=0; j<(cache.sets*4*cache.ways); j++){
-            fprintf(f, "0x%x,%d\n",rundata[j].addr, rundata[j].time);
+            fprintf(f, "0x%x,0x%x,%d\n",
+                rundata[j].addr,
+                rundata[j].phys,
+                rundata[j].time);
         }
     }
+    g_ATTACK_RUNNING = 0; // signal that the attack is complete
+
+    pthread_join(vic_thread, NULL);
+
     fclose(f);
+    printf("\n\tAttack run complete.\n");
+
 }
 
 
@@ -79,10 +111,11 @@ int main(int argc, char* argv[]) {
     } else {
         numruns = atoi(argv[1]);
     }
+    printf("Starting data collection process.");
 
     l1pp_datacollection(numruns);
 
-    printf("Done.\n");
+    printf("Data collection process complete.\n");
 
     return 0;
 

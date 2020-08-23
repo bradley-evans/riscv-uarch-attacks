@@ -12,7 +12,7 @@
 #include "demo.h"
 
 
-extern char g_DEBUG = 0; /*!< Disables debug messages by default. Global, shared with debug_log module. */
+char g_DEBUG = 0; /*!< Disables debug messages by default. Global, shared with debug_log module. */
 
 
 /**

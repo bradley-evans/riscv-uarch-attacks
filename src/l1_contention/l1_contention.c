@@ -23,7 +23,7 @@ char g_ATTACK_RUNNING = 0;  /*!< Global flag that indicates if attacker loop is 
  *
  * @param      victim  The victim address.
  */
-void l1_contention_victim_process(void *victim) {
+void * l1_contention_victim_process(void *victim) {
     
     // victim initializing
     int v;

@@ -1,0 +1,2 @@
+add_executable(prototype_addrconvert prototype_addrconvert.c)
+target_link_libraries(prototype_addrconvert m -static)

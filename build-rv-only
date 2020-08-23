@@ -12,5 +12,6 @@ cd ..
 
 # copy to testenv
 sudo mount testenv/rootfs.ext2 /mnt/rvdisk
-sudo cp build-riscv/src/demo /mnt/rvdisk/root/
+sudo cp build-riscv/bin/demo /mnt/rvdisk/root/
+sudo cp build-riscv/bin/l1pp_datacollect /mnt/rvdisk/root/
 sudo umount /mnt/rvdisk

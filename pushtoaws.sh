@@ -4,9 +4,11 @@ set -e
 
 KEYFILE="/home/brad/.ssh/firesim.pem"
 
-DEMOBIN="/home/brad/dev/riscv-uarch-attacks/build-riscv/src/demo"
+DEMOBIN="/home/brad/dev/riscv-uarch-attacks/build-riscv/bin/demo"
+L1PPBIN="/home/brad/dev/riscv-uarch-attacks/build-riscv/bin/l1pp_datacollect"
 
-BINARIES=($DEMOBIN)
+
+BINARIES=($DEMOBIN $L1PPBIN)
 
 ./build-rv-only
 

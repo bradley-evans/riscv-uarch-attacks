@@ -67,6 +67,13 @@ We had a lot of initial success testing the RISC-V binaries we generated on a
 [`fpga-zynq`](https://github.com/ucb-bar/fpga-zynq) repository to instantiate a
 Rocket core on the FPGA. That is one option.
 
-### On Firesim
+### On FireSim
 
-
+Berkeley Architecture Research has developed the 
+[FireSim platform](https://docs.fires.im/en/latest/#) to allow RISC-V
+testing to be performed on AWS-F1 instances. The `push-to-aws` script is meant
+to push the demo binary to a FireSim manager instance, as set up per the basic
+setup guide in the FireSim documentation. You can run it with
+```
+./push-to-aws $FIRESIM-MANAGER-IP
+```

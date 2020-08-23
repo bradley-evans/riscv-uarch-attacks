@@ -43,6 +43,7 @@ struct cache_t {
     int level; /*!< Level of this cache, eg L1. */
     int size; /*!< Size of cache, bytes. */
     int sets; /*!< Number of sets in this cache. */
+    int linesize; /*!< Cache line size, bytes */
     int blocksize; /*!< The system block size, bytes. */
     char * type; /*!< String for instruction, data cache, etc. */
     // derived properties
@@ -129,7 +130,8 @@ static inline uint64_t _x86_64_rdtsc() {
 }
 
 
-#endif // __x86_84
+#endif /* __x86_84 */
+
 
 /* ==============================================================
  * RISCV-V FUNCTIONS
@@ -191,8 +193,8 @@ static uint64_t _riscv_rdcycle() {
  * need to do anyway.
  * 
  * @ingroup    low
- * @param[in]  addr       The address
- * @param[in]  sz         The size
+ * @param[in]  addr       The address we would like to flush from cache.
+ * @param[in]  sz         The size of the area of memory we need to flush from cache.
  * @param[in]  cache      L1 DCache parameters
  */
 static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache ) {
@@ -212,9 +214,12 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
         // Flush the entire cache, no rollover.
         numSetsClear = cache.sets;
     }
+
+
     uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
     uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;  //!< Memory space aligned on the first space in dummyMem with set and offset = 0
 
+    // This is the essential loop that will clear out the targeted set 
     for (uint64_t i=0; i<numSetsClear; ++i) {
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
         for (uint64_t j=0; j<4*cache.ways; ++j) {
@@ -226,7 +231,7 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
 }
 
 
-#endif //__riscv
+#endif /* __riscv */
 
 
 /*
@@ -237,6 +242,7 @@ int get_numCPUOnline();
 struct cache_t get_CacheParameters(int hart_id, int cache_index);
 struct cpu_t get_CPUParameters(int hart_id);
 struct cpu_t* initialize_cpu();
+struct cache_t getL1DCache();
 void notimplemented();
 
 
@@ -261,6 +267,7 @@ void notimplemented();
     #undef flushcache
     #undef cycles
     
+
     #define asm_load(arg) primitive_load(arg)
     #define asm_store(arg) primitive_store(arg)
     #define serialize() _riscv_rdinstret()
@@ -282,4 +289,4 @@ void notimplemented();
 #endif
 
 
-#endif
+#endif /* __LOW_H__ */

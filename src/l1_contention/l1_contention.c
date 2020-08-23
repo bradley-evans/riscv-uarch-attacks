@@ -100,7 +100,7 @@ void l1_contention_attack_process(void *victim, struct cache_t cache) {
  */
 void l1_contention_demo(int *victim, struct cache_t cache) {
     int cpuid = get_hartid();
-    pthread_t vic_thread, att_thread;
+    pthread_t vic_thread;
     
     // Spawn victim thread
     pthread_create(&vic_thread, NULL, &l1_contention_victim_process, victim);

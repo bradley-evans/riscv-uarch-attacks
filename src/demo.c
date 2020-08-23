@@ -46,13 +46,14 @@ void main() {
         for (int j=0; j<cpu[i].numCaches; j++) {
             printf("\t\tcache%d: is a %d way L%d %s cache \n\
                     with size %d and and %d sets. The block\n\
-                    size is %d.\n",
+                    size is %d. The line size is %d.\n",
                     j, cpu[i].cache[j].ways,
                     cpu[i].cache[j].level,
                     cpu[i].cache[j].type,
                     cpu[i].cache[j].size,
                     cpu[i].cache[j].sets,
-                    cpu[i].cache[j].blocksize);
+                    cpu[i].cache[j].blocksize,
+                    cpu[i].cache[j].linesize);
             printf("\t\t\tDerived parameters: there are %d offset bits,\n\
                     %d set bits, and %d tag bits. Address length\n\
                     is %d.\n",
@@ -109,17 +110,16 @@ void main() {
 
     l1_contention_demo(&victim, tgt_cache);
 
-
-
     printf("====================================================\n");
     printf("Prime and Probe, L1 Data Cache (L1D$) Demonstration.\n");
     printf("====================================================\n\n");
 
-
-    // enable debug messages beyond this point
-    g_DEBUG = 1;
-
     l1pp_demo(tgt_cache);
+
+    printf("=======================\n");
+    printf("DEMONSTRATION CONCLUDED\n");
+    printf("=======================\n");
+    printf("       ٩(͡๏̯͡๏)۶       \n");
 
     exit(0);
 

@@ -27,7 +27,7 @@ int get_numCaches(int hart_id) {
 
     DIR* d = opendir(target);
     if(d==NULL) {
-        printf("No caches detected. Are you in an emulator?\n");
+        printf("Number of caches could not be determined from device tree. Are you in an emulator?\n");
         printf("Generating a default number of caches.\n");
         return 2;
     }
@@ -84,6 +84,7 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
 
     struct cache_t cache;
     char buff[200];
+    char *buff_ptr;
     char *workingdir;
 
     sprintf(buff, "/sys/devices/system/cpu/cpu%d/cache/index%d/",
@@ -93,27 +94,37 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
 
     DIR* dir = opendir(workingdir);
     if(dir==NULL) {
-        printf("No caches detected. Are you in an emulator?\n");
-        printf("Generating a default cache object.\n");
         if (cache_index==0) {
             // generate a emulator default instr cache
+            printf("Generating a default instruction cache object.\n");
             cache.ways=4;
             cache.level=1;
             cache.type=malloc(100);
             strcpy(cache.type,"Instruction");
             cache.sets=64;
-            cache.size = cache.sets * cache.ways * cache.blocksize;
+            cache.size=32768;
+            cache.linesize = cache.size / (cache.sets * cache.ways);
             cache.blocksize=4096;
         } else if (cache_index==1) {
             // generate a emulator default data cache
+            printf("Generating a default data cache object.\n");
             cache.ways=4;
             cache.level=1;
             cache.type=malloc(100);
             strcpy(cache.type,"Data");
             cache.sets=64;
-            cache.size = cache.sets * cache.ways * cache.blocksize;
+            cache.size=32768;
+            cache.linesize = cache.size / (cache.sets * cache.ways);
             cache.blocksize=4096;
         }
+        // derived parameters
+        uint64_t fullmask = 0xFFFFFFFFFFFFFFFF;
+        cache.numbits_Offset =  log2(cache.linesize);
+        cache.numbits_Set =     log2(cache.sets);
+        cache.numbits_Tag =     sizeof(void*)*8 - cache.numbits_Set - cache.numbits_Offset;
+        cache.mask_Offset =     (~(fullmask << cache.numbits_Offset));
+        cache.mask_Tag =        (fullmask << (cache.numbits_Set + cache.numbits_Offset));
+        cache.mask_Set =        (~(cache.mask_Tag | cache.mask_Offset));
         return cache;
     }
 
@@ -130,8 +141,17 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
     // get number of sets
     cache.sets = atoi(get_StringFromSysFile(concat(workingdir,"number_of_sets")));
 
-    // get cache size as derivation from num sets, num ways
-    cache.size = cache.sets * cache.ways * cache.blocksize;
+    // get cache size. Usually this will return as some string like "32K".
+    // Remember, here K is base2 so 32K means 32*1024 = 
+    buff_ptr = get_StringFromSysFile(concat(workingdir,"size"));
+    cache.size = atoi(buff_ptr);
+    if (strchr(buff_ptr,'K') != NULL) {
+        cache.size = cache.size * 1024;
+    }
+
+    // derive line size
+    cache.linesize = cache.size / ( cache.sets * cache.ways );
+
 
     char *blocksize = get_StringFromSysFile("/sys/devices/system/memory/block_size_bytes");
     if (blocksize == NULL) {
@@ -142,9 +162,9 @@ struct cache_t get_CacheParameters(int hart_id, int cache_index) {
 
     // derived parameters
     uint64_t fullmask = 0xFFFFFFFFFFFFFFFF;
-    cache.numbits_Offset =  log2(cache.blocksize);
+    cache.numbits_Offset =  log2(cache.linesize);
     cache.numbits_Set =     log2(cache.sets);
-    cache.numbits_Tag =     sizeof(void*);
+    cache.numbits_Tag =     sizeof(void*) * 8 - cache.numbits_Set - cache.numbits_Offset;
     cache.mask_Offset =     (~(fullmask << cache.numbits_Offset));
     cache.mask_Tag =        (fullmask << (cache.numbits_Set + cache.numbits_Offset));
     cache.mask_Set =        (~(cache.mask_Tag | cache.mask_Offset));
@@ -172,7 +192,7 @@ struct cpu_t get_CPUParameters(int hart_id) {
     }
     return cpu;
 }
-
+ 
 
 /**
  * @brief      Creates a *cpu_t array of parameters for each core on a system.
@@ -190,6 +210,24 @@ struct cpu_t * initialize_cpu() {
         cpu[i] = get_CPUParameters(i);
     }
     return cpu;
+}
+
+
+/**
+ * @brief      Gets the valid L1 data cache parameters for the current CPU
+ * that this process is running on.
+ *
+ * @return     The L1 Data Cache parameters for the current CPU core.
+ */
+struct cache_t getL1DCache() {
+    int numCPU = get_numCPUOnline();
+    struct cpu_t *cpu = initialize_cpu();
+    int currCPU = get_hartid();
+    struct cache_t cache = cpu[currCPU].cache[0];
+    if (strcmp(cache.type, "Instruction") == 0) {
+        cache = cpu[currCPU].cache[1];
+    }
+    return cache;
 }
 
 

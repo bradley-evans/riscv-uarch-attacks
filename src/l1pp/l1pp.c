@@ -13,7 +13,7 @@
  * @return     A pointer to an array that occupies a space some multiple
  * larger than the size of the cache.
  */
-static uint8_t * l1pp_prime (struct cache_t cache) {
+uint8_t * l1pp_prime(struct cache_t cache) {
 
     // Create a large enough array that it will overwrite
     // the whole cache.
@@ -50,7 +50,7 @@ static uint8_t * l1pp_prime (struct cache_t cache) {
 
     // pass back the address of our aligned memory location
     // so that we can probe it later.
-    return alignedMem;
+    return (uint8_t *)alignedMem;
 }
 
 
@@ -59,25 +59,37 @@ static uint8_t * l1pp_prime (struct cache_t cache) {
  * to determine which members of the primed memory were evicted.
  *
  * @param[in]  primed_memory  A pointer to the beginning of the primed memory.
- * @param[in]  sz             The size
+ *
+ * @return     An array of l1pp_result_t structs that show the memory address
+ * probed and the resulting memory access time.
+ * 
  */
-void l1pp_probe(uint8_t *primed_memory, struct cache_t cache) {
-    printf("Probing beginning at aligned memory location 0x%x.\n", primed_memory);
+struct l1pp_result_t * l1pp_probe(uint8_t *primed_memory, struct cache_t cache) {
 
+    struct l1pp_result_t *results = malloc(sizeof(struct l1pp_result_t) * cache.sets * 4 * cache.ways);
     uint64_t start, end;
-
     uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
     uint64_t addr = (uint64_t)primed_memory;
-    for (uint64_t i=0; i<cache.sets; ++i) {
+    int index = 0;
+
+    for (uint64_t i=0; i<cache.sets; i++) {
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
         for (uint64_t j=0; j<4*cache.ways; ++j) {
             uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);
             start = cycles();
             dummyVar = *((uint8_t*)((uint64_t)primed_memory + setOffset + wayOffset));
             end = cycles();
-            printf("At 0x%x, memaccess time was %d.\n", ((uint64_t)primed_memory + setOffset + wayOffset), end-start);
+            results[index].addr = ((uint64_t)primed_memory + setOffset + wayOffset);
+            results[index].time = end-start;
+            index++;
         }
     }
+
+    for (uint64_t i=0; i<(cache.sets*4*cache.ways); i++) {
+        results[i].phys = virt_to_phys(results[i].addr, getpid());
+    }
+
+    return results;
 }
 
 
@@ -87,7 +99,6 @@ void l1pp_probe(uint8_t *primed_memory, struct cache_t cache) {
  */
 void l1pp_victim () {
 
-
     uint8_t victim = 0;
     uint8_t dummy = 1;
 
@@ -96,15 +107,19 @@ void l1pp_victim () {
         victim = victim + dummy;
         dummy = dummy + victim;
     }
+
 }
 
 
 /**
- * @brief      { function_description }
+ * @brief      A brief demonstration function that shows the L1PP capabilities
+ * of this library.
  *
- * @param[in]  cache  The cache
+ * @param[in]  cache  The cache parameters.
  */
 void l1pp_demo(struct cache_t cache) {
+
+    pthread_t vic_thread;
 
     // step 1: prime cache
     printf("Priming cache...");
@@ -113,9 +128,20 @@ void l1pp_demo(struct cache_t cache) {
 
     // step 2: initiate victim thread
     printf("Spinning up victim.\n");
-    l1pp_victim();
+    // victim goes into a different thread
+    pthread_create(&vic_thread, NULL, &l1pp_victim, NULL);
+    pthread_join(vic_thread, NULL);
 
     // step 3: probe cache to see what was evicted
     printf("Victim process has run. Probing...\n");
-    l1pp_probe(primed_memory, cache);
+    printf("Probing beginning at aligned memory location 0x%x.\n", primed_memory);
+
+    struct l1pp_result_t *proberesults = l1pp_probe(primed_memory, cache);
+    for (int i=0; i<(cache.sets*(4 * cache.ways)); i++) {
+        printf("\tProbe of 0x%x\tphys: 0x%x\tmemaccess time: %d\n",
+            proberesults[i].addr,
+            proberesults[i].phys,
+            proberesults[i].time
+        );
+    }
 }

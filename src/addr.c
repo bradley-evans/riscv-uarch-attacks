@@ -87,6 +87,19 @@ struct address_t get_Address(struct cache_t cache, int *var) {
 }
 
 
+/**
+ * @brief      Gets a pagemap entry. Supports VA->PA conversion.
+ * 
+ * This function was taken from a StackExchange answer, "Is there any API for
+ * determining the physical address from virtual address in Linux?".
+ * https://stackoverflow.com/a/45128487/4107537
+ * 
+ * @param      entry       The entry
+ * @param[in]  pagemap_fd  The pagemap fd
+ * @param[in]  vaddr       The vaddr
+ *
+ * @return     { description_of_the_return_value }
+ */
 int pagemap_get_entry(PagemapEntry *entry, int pagemap_fd, uintptr_t vaddr) {
     size_t nread;
     ssize_t ret;
@@ -112,6 +125,19 @@ int pagemap_get_entry(PagemapEntry *entry, int pagemap_fd, uintptr_t vaddr) {
 }
 
 
+/**
+ * @brief      Function to convert virtual addresses running within a process
+ * to physical addresses.
+ * 
+ * This function was taken from a StackExchange answer, "Is there any API for
+ * determining the physical address from virtual address in Linux?".
+ * https://stackoverflow.com/a/45128487/4107537
+ *
+ * @param[in]  vaddr  The vaddr
+ * @param[in]  pid    The pid
+ *
+ * @return     { description_of_the_return_value }
+ */
 uint64_t virt_to_phys(uint64_t vaddr, pid_t pid) {
     char pagemap_file[BUFSIZ];
     int pagemap_fd;

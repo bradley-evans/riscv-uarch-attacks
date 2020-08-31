@@ -16,6 +16,13 @@ char* uint64_t_to_binary_string(uint64_t num) {
 }
 
 
+/**
+ * @brief      Pretty print some columns for this prototype.
+ *
+ * @param[in]  cache  The cache
+ *
+ * @return     Pretty printed column string.
+ */
 char * makecolumns(struct cache_t cache) {
 
     char *labels = malloc(cache.numbits_Offset+cache.numbits_Set+cache.numbits_Tag+1);
@@ -74,7 +81,7 @@ uint8_t * generatePrimeset(struct cache_t cache) {
     // Our aligned memory location starts with a tag related to dummyMem[] and
     // zeroed out set, offset bits.
     uint64_t *addr;
-    uint64_t probeset[cache.ways];
+    uint64_t probeset[cache.sets][cache.ways];
     for (uint64_t i=0; i<cache.sets; ++i) {
         // First, craft our set bits. Our set will be what we're looping through
         // in this loop. 

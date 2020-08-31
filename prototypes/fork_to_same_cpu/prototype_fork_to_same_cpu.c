@@ -53,13 +53,35 @@ void sigquit() {
 }
 
 
+void sighup() {
+    signal(SIGHUP, sighup); // reset signal
+    printf("pid %d recieved SIGHUP.\n", getpid());
+}
+
+
+void sigflag1() {
+
+    signal(SIGFLAG1, sigflag1); // reset signal
+    printf("pid %d recieved SIGFLAG1.\n", getpid());
+}
+
+
 void processA(pid_t child) {
     printf("ProcessA: pid %d on cpu%d.\n", getpid(), get_hartid());
-    usleep(10000);
+    sleep(3);
+
+    printf("ProcessA: sending SIGHUP.\n");
+    kill(child,SIGHUP);
+    sleep(1);
+
+    printf("ProcessA: sending SIGFLAG1.\n");
+    kill(child,SIGFLAG1);
+    sleep(1);
 
     printf("ProcessA: sending SIGQUIT.\n");
     kill(child,SIGQUIT);
 
+    printf("ProcessA: Terminating.\n");
     exit(0);
 }
 
@@ -99,6 +121,8 @@ int main() {
             exit(1);
         }
         signal(SIGQUIT, sigquit);
+        signal(SIGHUP, sighup);
+        signal(SIGFLAG1, sigflag1); 
         processB();
     }
 

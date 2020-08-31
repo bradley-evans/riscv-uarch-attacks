@@ -18,6 +18,16 @@
 #include <stdbool.h>
 
 
+#define SIGFLAG1 10
+
+
+void sigquit();
+void sighup();
+void sigflag1();
 void print_affinity();
+void processA();
+void processB();
+
+
 
 #endif /* __PROTOTYPE_FORK_TO_SAME_CPU_H__ */

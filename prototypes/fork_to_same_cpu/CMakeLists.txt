@@ -1,0 +1,2 @@
+add_executable(prototype_fork_to_same_cpu prototype_fork_to_same_cpu.c)
+target_link_libraries(prototype_fork_to_same_cpu -static m)

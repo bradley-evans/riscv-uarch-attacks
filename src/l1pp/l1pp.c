@@ -17,7 +17,16 @@ uint8_t * l1pp_prime(struct cache_t cache) {
 
     // Create a large enough array that it will overwrite
     // the whole cache.
+    // Current state: &dummyMem = [dummytag][dummyset][dummyoffset]
     uint8_t dummyMem[5 * cache.size]; //!< Creates an array of at least the size of the cache times some multiple.
+
+    // Advance to the memory address &dummyMem + (the size of the cache).
+    // Then `and` this address against the tag mask, which will generate a
+    // memory address that has &dummyMem + cache.size's tag, but should zero
+    // out the offset and set bits.
+    // From here we can generate our "probe set" of addresses, neatly iterating
+    // from set 0 to the highest set number in our cache.
+    // Current state: alignedMem = [dummytag+x][000][000]
     uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;  //!< Memory space aligned on the first space in dummyMem with set and offset = 0 
     uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
 
@@ -39,11 +48,29 @@ uint8_t * l1pp_prime(struct cache_t cache) {
     // we want to clear all sets in the cache
     // and replace them with our dummy array
     // to prime the cache.
+    // 
+    // Our aligned memory location starts with a tag related to dummyMem[] and
+    // zeroed out set, offset bits.  
+    // Current state: alignedMem = [dummytag][dummyset][dummyoffset]
     uint64_t addr = (uint64_t)&dummyMem;
     for (uint64_t i=0; i<cache.sets; ++i) {
+        // First, craft our set bits. Our set will be what we're looping through
+        // in this loop. 
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
         for (uint64_t j=0; j<4*cache.ways; ++j) {
+            // Each set is going to have a certain number of ways, too, that we
+            // need to evict with our probe set. We'll advance our tag bits by
+            // the value of the iterator to generate 4*cache.ways different
+            // addresses that would map to the same tag. 
             uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);
+            // Then we add all these together to our aligned memory location to
+            // get a valid memory address in our process' valid virtual address
+            // space that corresponds to a set defined by i. we will generate
+            // cache.ways*4 of these for every set to be very sure we have
+            // primed the cache.
+            // 
+            // Then we perform a memory read into our dummyVar to get that
+            // address into our cache.
             dummyVar = *((uint8_t*)(alignedMem + setOffset + wayOffset));
         }
     }
@@ -69,10 +96,15 @@ struct l1pp_result_t * l1pp_probe(uint8_t *primed_memory, struct cache_t cache) 
     struct l1pp_result_t *results = malloc(sizeof(struct l1pp_result_t) * cache.sets * 4 * cache.ways);
     uint64_t start, end;
     uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
-    uint64_t addr = (uint64_t)primed_memory;
     int index = 0;
 
+
+    // In l1pp_prime() we created an aligned memory address that corresponds to
+    // dummyMem[]. We saved that address, and now we need to go back and check
+    // the memory access times of our probe set.
+    uint64_t addr = (uint64_t)primed_memory;
     for (uint64_t i=0; i<cache.sets; i++) {
+        // As before 
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
         for (uint64_t j=0; j<4*cache.ways; ++j) {
             uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);

@@ -133,10 +133,10 @@ int pagemap_get_entry(PagemapEntry *entry, int pagemap_fd, uintptr_t vaddr) {
  * determining the physical address from virtual address in Linux?".
  * https://stackoverflow.com/a/45128487/4107537
  *
- * @param[in]  vaddr  The vaddr
- * @param[in]  pid    The pid
+ * @param[in]  vaddr  The virtual address
+ * @param[in]  pid    The pid associated with the virtual address
  *
- * @return     { description_of_the_return_value }
+ * @return     The physical address
  */
 uint64_t virt_to_phys(uint64_t vaddr, pid_t pid) {
     char pagemap_file[BUFSIZ];

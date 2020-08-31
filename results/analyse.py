@@ -6,20 +6,15 @@ from matplotlib import collections as matcoll
 import statistics
 
 
-attacker_data_file = "20200823-attacker-l1pp-output.csv"
+attacker_data_file = "20200831-attacker-l1pp-output.csv"
 victim_data_file = "20200823-victim-l1pp-output.csv"
 
 """
                 cache1: is a 4 way L1 Data cache 
-
                     with size 16384 and and 64 sets. The block
-
                     size is 4096. The line size is 64.
-
                         Derived parameters: there are 6 offset bits,
-
                     6 set bits, and 52 tag bits. Address length
-
                     is 64.
 """
 

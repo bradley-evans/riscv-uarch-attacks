@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(riscv-uarch-attacks)
 
 add_subdirectory(src)
+add_subdirectory(prototypes)
 
 find_package(Threads REQUIRED)
 

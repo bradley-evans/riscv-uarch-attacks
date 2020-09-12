@@ -1,4 +1,4 @@
-# `riscv-uarch-attacks`
+# About This Project
 
 This project is being developed by Bradley Evans, a graduate student
 at the Department of Computer Science and Engineering, Bourns College
@@ -8,13 +8,13 @@ Engineering at that university. Bradley Evans is advised by Prof.
 Nael Abu-Ghazaleh.
 
 This codebase is a portion of a thesis titled "The Attack Surface of
-RISC-V Processors," currently unpublished (as of Aug 2020).
+RISC-V Processors," currently unpublished (as of Sept 2020).
 
 # Introduction
 
 TODO
 
-# Structure from This Location
+# Root Directory Structure
 
 | item              | description                    |
 |-------------------|--------------------------------|
@@ -23,10 +23,10 @@ TODO
 | src/              | The actual source code. |
 | testenv/          | A QEMU-based test environment. |
 | tests/            | Unit tests. |
+| results/          | Some results obtained, analysis scripts. |
 | build             | Build script. |
 | build-rv-only     | Builds the project for RISC-V only. |
 | pushtoaws.sh      | Script to push a new build to AWS FireSim. |
-|-------------------|--------------------------------|
 
 # Usage
 
@@ -48,6 +48,8 @@ of this repository.
 The `demo` binary will be found in `build-default/src/demo` and 
 `build-riscv/src/demo` respectively.
 
+This project uses `cmake` and the `riscv-gnu-toolchain` to perform its builds. Both are required to make use of this repository, with a valid `$RISCV` environment variable set.
+
 ## Running RISC-V Binaries
 
 ### In QEMU
@@ -60,7 +62,7 @@ The `build-rv-only` script will open an `ext2` image in `testenv` for you and
 place a demo binary inside of there at `/root/demo`. There is a README inside
 of `testenv` that explains what to do from there.
 
-### On `fpga-zynq`
+### On fpga-zynq
 
 We had a lot of initial success testing the RISC-V binaries we generated on a
 [Zedboard](http://zedboard.org/product/zedboard) using the 

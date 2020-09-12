@@ -56,7 +56,7 @@ void main() {
                     cpu[i].cache[j].linesize);
             printf("\t\t\tDerived parameters: there are %d offset bits,\n\
                     %d set bits, and %d tag bits. Address length\n\
-                    is %d.\n",
+                    is %ld.\n",
                     cpu[i].cache[j].numbits_Offset,
                     cpu[i].cache[j].numbits_Set,
                     cpu[i].cache[j].numbits_Tag,

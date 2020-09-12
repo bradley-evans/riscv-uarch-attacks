@@ -6,9 +6,10 @@ KEYFILE="/home/brad/.ssh/firesim.pem"
 
 DEMOBIN="/home/brad/dev/riscv-uarch-attacks/build-riscv/bin/demo"
 L1PPBIN="/home/brad/dev/riscv-uarch-attacks/build-riscv/bin/l1pp_datacollect"
+HVMBIN="/home/brad/dev/riscv-uarch-attacks/build-riscv/bin/hitvsmiss_datacollect"
 
 
-BINARIES=($DEMOBIN $L1PPBIN)
+BINARIES=($DEMOBIN $L1PPBIN $HVMBIN)
 
 ./build-rv-only
 

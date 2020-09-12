@@ -1,7 +1,10 @@
 /**
  * @defgroup   ADDR address
+ * 
+ * Operations performed upon memory addresses.
  *
  * @file       addr.c
+ * @ingroup    ADDR address
  * @brief      Implementation of functions that operate on memory addresses.
  *
  * @author     Bradley Evans
@@ -11,27 +14,70 @@
 #include "addr.h"
 
 
+/**
+ * @brief      Calculates the number offset bits.
+ * @ingroup    ADDR address
+ *
+ * @param[in]  cache  The cache
+ *
+ * @return     The number offset bits.
+ */
 int calculateNumOffsetBits(struct cache_t cache) {
     return log2(cache.linesize);
 }
 
 
+/**
+ * @brief      Calculates the number index bits.
+ * @ingroup    ADDR address
+ *
+ * @param[in]  cache  The cache
+ *
+ * @return     The number index bits.
+ */
 int calculateNumIndexBits(struct cache_t cache) {
     return log2(cache.sets);
 }
 
 
+/**
+ * @brief      Gets the address size.
+ * @ingroup    ADDR address
+ *
+ * @param      var   The variable
+ *
+ * @return     The address size.
+ */
 int get_AddressSize(int *var) {
     return sizeof(var)*8;
 }
 
 
+/**
+ * @brief      Gets the offset.
+ * @ingroup    ADDR address
+ *
+ * @param[in]  addr           The address
+ * @param[in]  numOffsetBits  The number offset bits
+ *
+ * @return     The offset.
+ */
 unsigned int get_Offset(long long addr, int numOffsetBits) {
     long long mask = pow(2,numOffsetBits)-1;
     return mask & addr;
 }
 
 
+/**
+ * @brief      Gets the index.
+ * @ingroup    ADDR address
+ *
+ * @param[in]  addr           The address
+ * @param[in]  numOffsetBits  The number offset bits
+ * @param[in]  numIndexBits   The number index bits
+ *
+ * @return     The index.
+ */
 unsigned int get_Index(long long addr, int numOffsetBits, int numIndexBits) {
     long long mask = (int)(pow(2,numIndexBits)-1) << numOffsetBits;
     return (mask & addr) >> numOffsetBits;
@@ -40,6 +86,7 @@ unsigned int get_Index(long long addr, int numOffsetBits, int numIndexBits) {
 
 /**
  * @brief      Generates a tag from an address.
+ * @ingroup    ADDR address
  *
  * @param[in]  addr           The address
  * @param[in]  numOffsetBits  The number of offset bits
@@ -57,6 +104,7 @@ unsigned int get_Tag(long long addr, int numOffsetBits, int numIndexBits) {
 /**
  * @brief      Generates an address_t struct from cache information
  * and a variable passed by reference.
+ * @ingroup    ADDR address
  *
  * @param[in]  cache  A cache_t struct.
  * @param      var    A variable, passed by reference, to generate an address_t from.
@@ -89,6 +137,7 @@ struct address_t get_Address(struct cache_t cache, int *var) {
 
 /**
  * @brief      Gets a pagemap entry. Supports VA->PA conversion.
+ * @ingroup    ADDR address
  * 
  * This function was taken from a StackExchange answer, "Is there any API for
  * determining the physical address from virtual address in Linux?".
@@ -128,6 +177,7 @@ int pagemap_get_entry(PagemapEntry *entry, int pagemap_fd, uintptr_t vaddr) {
 /**
  * @brief      Function to convert virtual addresses running within a process
  * to physical addresses.
+ * @ingroup    ADDR address
  * 
  * This function was taken from a StackExchange answer, "Is there any API for
  * determining the physical address from virtual address in Linux?".
@@ -164,6 +214,7 @@ uint64_t virt_to_phys(uint64_t vaddr, pid_t pid) {
  * In theory, this address could evict the victim address by occupying the same
  * cache line, but this doesn't work. It will instead segmentation fault, more
  * often than not.
+ * @ingroup    ADDR address
  *
  * @param[in]  cache   Cache parameters.
  * @param[in]  victim  Victim address we would like to evict.

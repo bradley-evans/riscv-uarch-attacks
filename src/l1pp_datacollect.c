@@ -1,3 +1,13 @@
+/**
+ * @defgroup   L1PP l1pp
+ * 
+ * @file       l1pp_datacollect.c
+ * @ingroup    L1PP l1pp
+ * @brief      Implementations of L1PP data collection functions.
+ *
+ * @author     Bradley Evans
+ * @date       August 2020
+ */
 #include "l1pp_datacollect.h"
 
 
@@ -6,16 +16,16 @@ char g_DEBUG;
 
 char g_VICTIM_RUNNING = 0;  /*!< Global flag that indicates if threaded victim loop is running. */
 char g_ATTACK_RUNNING = 0;  /*!< Global flag that indicates if threaded attacker loop is running. */
-char g_VICTIM_START_READ = 0;
-char g_VICTIM_READ_DONE = 0;
+char g_VICTIM_START_READ = 0; /*!< Control variable, tells victim thread to start a read operation. */
+char g_VICTIM_READ_DONE = 0; /*!< Control variable, tells attacker that the victim read is done. */
 
 
-uint64_t g_VICTIM_RUN_USEC_FREQ = 500;
+uint64_t g_VICTIM_RUN_USEC_FREQ = 500; /*!< How long we should wait after a victim memory read is initated before proceeding. */
 
 
 uint8_t *** victimAddrs;    /*!< a 2D array of pointers, made global to allow passing to signaled processes. */
 uint64_t setWidth = 3;      /*!< How many sets to take from the middle cache lines. */
-struct cache_t cache;
+struct cache_t cache;       /*!< The cache parameters. Global. */
 
 
 /**
@@ -24,7 +34,7 @@ struct cache_t cache;
  * @param      addr  A target memory address to read.
  */
 void victimEvict(uint8_t *addr) {
-    uint8_t dummyVar;
+    uint8_t dummyVar; /*!< Dummy variable to store the contents of addr. */
     dummyVar = *addr;
 }
 
@@ -65,10 +75,10 @@ void victim_read() {
 void * l1pp_dc_victim_process() {
     // Lets make the set selectable.
     // Set up as below, default set will be the middle sets.
-    uint8_t victimMem[5 * cache.size];
-    uint64_t alignedMem = ((uint64_t)&victimMem + cache.size) & cache.mask_Tag;
-    uint64_t victimSet = cache.sets / 2;
-    uint8_t dummyVar;
+    uint8_t victimMem[5 * cache.size]; /*!< Allocates a block of memory five times the cache size to avoid segfault. */
+    uint64_t alignedMem = ((uint64_t)&victimMem + cache.size) & cache.mask_Tag; /*!< First sequential memory location in victimMem with set=0 offset=0 */
+    uint64_t victimSet = cache.sets / 2; /*!< The set that the victim will try to evict. */
+    uint8_t dummyVar; /*!< Dummy variable to load stuff into to effect eviction. */
 
     victimAddrs = malloc(setWidth * cache.ways * sizeof(uint8_t*));
 
@@ -107,19 +117,19 @@ void * l1pp_dc_victim_process() {
  */
 void * l1pp_dc_victim_thread() {
 
-    uint8_t *victimMem1 = malloc(1);
-    uint8_t *victimMem2 = malloc(1);
-    uint8_t sum = 0;
+    uint8_t *victimMem1 = malloc(1); /*!< A victim memory location. */
+    uint8_t *victimMem2 = malloc(1); /*!< A victim memory location. */
+    uint8_t sum = 0; /*!< Somewhere to store dummy arithmentic operations. */
     
     FILE *f = fopen("l1pp_datacollection_victim.csv", "w");
     fprintf(f, "virt,phys\n");
-    fprintf(f, "0x%x,0x%x\n", &victimMem1, virt_to_phys((uint64_t)victimMem1,getpid()));
-    fprintf(f, "0x%x,0x%x\n", &victimMem2, virt_to_phys((uint64_t)victimMem2,getpid()));
+    fprintf(f, "0x%lx,0x%lx\n", (uint64_t)&victimMem1, virt_to_phys((uint64_t)victimMem1,getpid()));
+    fprintf(f, "0x%lx,0x%lx\n", (uint64_t)&victimMem2, virt_to_phys((uint64_t)victimMem2,getpid()));
     fclose(f);
 
-    printf("\tStarted victim process. Victim is reading 0x%x and 0x%x.\n", victimMem1, victimMem2);
-    printf("\t...Additionally, global var g_VICTIM_RUNNING is located at 0x%x\n", &g_VICTIM_RUNNING);
-    printf("\t...and global var g_ATTACK_RUNNING is located at 0x%x.\n", &g_ATTACK_RUNNING);
+    printf("\tStarted victim process. Victim is reading 0x%lx and 0x%lx.\n", (uint64_t)victimMem1, (uint64_t)victimMem2);
+    printf("\t...Additionally, global var g_VICTIM_RUNNING is located at 0x%lx\n", (uint64_t)&g_VICTIM_RUNNING);
+    printf("\t...and global var g_ATTACK_RUNNING is located at 0x%lx.\n", (uint64_t)&g_ATTACK_RUNNING);
 
     g_VICTIM_RUNNING = 1;
 
@@ -146,9 +156,11 @@ void * l1pp_dc_victim_thread() {
 
 
 /**
- * @brief      Threaded version of the attack. Will victim thread run like a 
- * state machine controlled by the attacker process via global variables to
- * ensure memory reads occur between prime and probe phases.
+ * @brief      Threaded version of the attack. 
+ * 
+ * Victim thread will run like a state machine controlled by the attacker 
+ * process via global variables to ensure memory reads occur consistently and 
+ * repeatably between prime and probe phases.
  *
  * @param[in]  numruns  The number of times to repeat the attack.
  */
@@ -156,8 +168,8 @@ void l1pp_datacollection_threaded(int numruns) {
 
     cache = getL1DCache(); /*!< Cache parameters. */
     pthread_t vic_thread; /*!< Victim pthread */
-    uint8_t *primed_memory;
-    struct l1pp_result_t *rundata;
+    uint8_t *primed_memory; /*!< Pointer to the start of the primed memory area. */
+    struct l1pp_result_t *rundata; /*!< Results from the l1pp probe. */
 
     printf("\t[Collecting Data]\n");
     printf("\tData collection process has started.[THREADED]\n");
@@ -174,7 +186,7 @@ void l1pp_datacollection_threaded(int numruns) {
     printf("\tVictim has initialized. Starting attack.\n");
     for (int i=0; i<numruns; i++) {
 
-        printf("\r\tRun %d of %d...\taligned on 0x%x",i+1,numruns, primed_memory);
+        printf("\r\tRun %d of %d...\taligned on 0x%lx",i+1,numruns, (uint64_t)primed_memory);
         fflush(stdout);
         // prime
         primed_memory = l1pp_prime(cache);
@@ -186,7 +198,7 @@ void l1pp_datacollection_threaded(int numruns) {
         rundata = l1pp_probe(primed_memory, cache);
         // save run data
         for (int j=0; j<(cache.sets*4*cache.ways); j++){
-            fprintf(f, "0x%x,0x%x,%d\n",
+            fprintf(f, "0x%lx,0x%lx,%ld\n",
                 rundata[j].addr,
                 rundata[j].phys,
                 rundata[j].time);
@@ -194,6 +206,7 @@ void l1pp_datacollection_threaded(int numruns) {
     }
     g_ATTACK_RUNNING = 0; // signal that the attack is complete
 
+    // wait for victim to terminate
     pthread_join(vic_thread, NULL);
 
     fclose(f);
@@ -204,16 +217,24 @@ void l1pp_datacollection_threaded(int numruns) {
 
 /**
  * @brief      Forked process version of the attack.
+ * 
+ * The `*primed_memory` area gets allocated by l1pp_prime() and is used to
+ * make sure segmentation faults don't happen when doing prime and probes. This
+ * same pointer gets sent off to l1pp_probe() to probe the same area that was
+ * primed.
+ * The victim process is forked off by this parent process and is controlled via
+ * kill() signals.
+ * CPU affinity is set to ensure that victim and attacker end up using the same
+ * CPU.
  *
  * @param[in]  numruns  Number of times to repeat the attack.
  */
 void l1pp_datacollection_forked(int numruns) {
-
     cache = getL1DCache(); /*!< Cache parameters. */
-    uint8_t *primed_memory;
-    struct l1pp_result_t *rundata;
-    pid_t child;
-    int cpuid = get_hartid();
+    uint8_t *primed_memory; /*!< Pointer to the start of the primed memory area. */
+    struct l1pp_result_t *rundata; /*!< Results from the l1pp probe. */
+    pid_t child; /*!< The PID of the child process launched by the attacker. */
+    int cpuid = get_hartid(); /*!< The cpuid that the main process is running on. */
 
     // Set CPU affinity to current CPU.
     cpu_set_t mask;
@@ -249,7 +270,7 @@ void l1pp_datacollection_forked(int numruns) {
     // Do attack.
     for (int i=0; i<numruns; i++) {
 
-        printf("\r\tRun %d of %d...\taligned on 0x%x",i+1,numruns, primed_memory);
+        printf("\r\tRun %d of %d...\taligned on 0x%lx",i+1,numruns, (uint64_t)primed_memory);
         fflush(stdout);
         // prime
         primed_memory = l1pp_prime(cache);
@@ -263,8 +284,8 @@ void l1pp_datacollection_forked(int numruns) {
         // probe
         rundata = l1pp_probe(primed_memory, cache);
         // // save run data
-        for (int j=0; j<(cache.sets*4*cache.ways); j++){
-            fprintf(f, "0x%x,0x%x,%d\n",
+        for (int j=0; j<(cache.sets*cache.ways); j++){
+            fprintf(f, "0x%lx,0x%lx,%ld\n",
                 rundata[j].addr,
                 rundata[j].phys,
                 rundata[j].time);
@@ -281,7 +302,7 @@ void l1pp_datacollection_forked(int numruns) {
 
 int main(int argc, char* argv[]) {
 
-    int numruns = 0;
+    int numruns = 0; /*!< Number of times to perform the L1PP attack cycle. */
 
     printf("Collecting data for L1D$ Prime and Probe.\n");
 

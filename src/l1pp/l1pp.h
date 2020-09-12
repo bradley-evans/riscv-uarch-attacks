@@ -1,10 +1,13 @@
 /**
- * @file l1pp.h
- * @author Bradley Evans
- * @date 22 July 2020
- * @brief Low level common functions for RISC-V side-channel attacks.
+ * @defgroup   L1PP l1pp
+ *
+ * @file       l1pp.h
+ * @ingroup    L1PP l1pp
+ * @brief      L1PP prototypes and structures.
+ *
+ * @author     Bradley Evans
+ * @date       July 2020
  */
-
 #ifndef __L1PP_H__
 #define __L1PP_H__
 
@@ -18,10 +21,16 @@
 #include "../low.h"
 #include "../addr.h"
 
+
+/**
+ * @brief      Stores results from an L1PP probe so it can be passed back for
+ * analysis.
+ */
 struct l1pp_result_t {
-    uint64_t addr;
-    uint64_t phys;
-    uint64_t time;
+    uint64_t addr;  /*!< The probed address. */
+    uint64_t phys;  /*!< The address' physical address. */
+    uint64_t time;  /*!< The memory access time of the probe. */
+    uint64_t run;   /*!< Which run this is, e.g. 1st run, 2nd run */
 };
 
 uint8_t * l1pp_prime(struct cache_t cache);

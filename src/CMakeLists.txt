@@ -15,3 +15,6 @@ target_link_libraries(demo util low addr debug_log l1_contention l1pp -static -l
 
 add_executable(l1pp_datacollect l1pp_datacollect.c)
 target_link_libraries(l1pp_datacollect low l1pp -static pthread m)
+
+add_executable(hitvsmiss_datacollect hitvsmiss_datacollect.c)
+target_link_libraries(hitvsmiss_datacollect low l1pp -static m)

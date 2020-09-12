@@ -1,9 +1,23 @@
+/**
+ * @defgroup   L1PP l1pp
+ * 
+ * L1 cache prime and probe attack implementations.
+ *
+ * @file       l1pp.c
+ * @ingroup    L1PP l1pp
+ * @brief      Function implementations that perform L1PP tasks, e.g. priming 
+ * operations, probing operations.
+ *
+ * @author     Bradley Evans
+ * @date       July 2020
+ */
 #include "l1pp.h"
 
 
 /**
  * @brief      Creates an array a multiple size of the whole cache.
  * Writes to all this memory to "prime" the cache.
+ * @ingroup    L1PP l1pp
  * 
  * This function is based upon the flushcache() function provided
  * by Berkeley Architecture Research.
@@ -57,10 +71,10 @@ uint8_t * l1pp_prime(struct cache_t cache) {
         // First, craft our set bits. Our set will be what we're looping through
         // in this loop. 
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
-        for (uint64_t j=0; j<4*cache.ways; ++j) {
+        for (uint64_t j=0; j<cache.ways; ++j) {
             // Each set is going to have a certain number of ways, too, that we
             // need to evict with our probe set. We'll advance our tag bits by
-            // the value of the iterator to generate 4*cache.ways different
+            // the value of the iterator to generate cache.ways different
             // addresses that would map to the same tag. 
             uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);
             // Then we add all these together to our aligned memory location to
@@ -84,6 +98,7 @@ uint8_t * l1pp_prime(struct cache_t cache) {
 /**
  * @brief      Performs memory reads on a "primed" portion of memory
  * to determine which members of the primed memory were evicted.
+ * @ingroup    L1PP l1pp
  *
  * @param[in]  primed_memory  A pointer to the beginning of the primed memory.
  *
@@ -128,6 +143,7 @@ struct l1pp_result_t * l1pp_probe(uint8_t *primed_memory, struct cache_t cache) 
 /**
  * @brief      Victim function that will read some arbitrary
  * memory location
+ * @ingroup    L1PP l1pp
  */
 void * l1pp_victim () {
 
@@ -146,6 +162,7 @@ void * l1pp_victim () {
 /**
  * @brief      A brief demonstration function that shows the L1PP capabilities
  * of this library.
+ * @ingroup    L1PP l1pp
  *
  * @param[in]  cache  The cache parameters.
  */

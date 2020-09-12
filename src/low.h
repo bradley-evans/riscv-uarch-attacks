@@ -124,7 +124,7 @@ static inline uint64_t _x86_64_rdtsc() {
     );
 
     char *msg = malloc(100);
-    sprintf(msg, "cycles: %d", ((uint64_t)hi << 32) | lo);
+    sprintf(msg, "cycles: %ld", ((uint64_t)hi << 32) | lo);
     debug_msg(msg);
     return ((uint64_t)hi << 32) | lo;
 }

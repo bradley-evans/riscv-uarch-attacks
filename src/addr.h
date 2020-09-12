@@ -35,6 +35,10 @@ struct address_t {
 };
 
 
+/**
+ * @brief      For performing pagewalks for virtual to physical address
+ * conversion.
+ */
 typedef struct {
     uint64_t pfn : 55;
     unsigned int soft_dirty : 1;

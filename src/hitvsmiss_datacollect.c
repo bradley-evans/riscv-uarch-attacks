@@ -12,19 +12,25 @@ uint64_t hitvmiss_measurement(struct cache_t cache) {
     uint8_t dummyVar = 0;
     uint64_t start, end;
     uint64_t data_index = 0;
+    volatile uint8_t* current_addr= 0;
 
     FILE *f = fopen(DATAFILE, "w");
     struct l1pp_result_t *results = malloc(sizeof(struct l1pp_result_t) * cache.sets * cache.ways * 5 * 10);
 
     for(uint64_t n=0; n<10; n++) {
         flushcache(alignedMem, cache.size, cache);
+        flushcache(alignedMem, cache.size, cache);
+        flushcache(alignedMem, cache.size, cache);
         for (uint64_t k=0; k<5; k++) {
             for (uint64_t i=0; i<cache.sets; i++) {
                 uint64_t setOffset = (((alignedMem & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
                 for (uint64_t j=0; j<cache.ways; ++j) {
                     uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);
+
+                    current_addr = (volatile uint8_t*)((uint64_t)alignedMem + setOffset + wayOffset);
+
                     start = cycles();
-                    dummyVar = *((uint8_t*)((uint64_t)alignedMem + setOffset + wayOffset));
+                    dummyVar = *current_addr;
                     end = cycles();
 
                     results[data_index].addr = ((uint64_t)alignedMem + setOffset + wayOffset);

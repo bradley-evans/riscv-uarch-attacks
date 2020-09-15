@@ -167,7 +167,7 @@ static inline uint64_t _riscv_rdinstret() {
  *
  * @return     The cycle count.
  */
-static uint64_t _riscv_rdcycle() {
+static inline uint64_t _riscv_rdcycle() {
     uint64_t cycles = 0;
     asm volatile(   
         "fence\n"
@@ -197,9 +197,7 @@ static uint64_t _riscv_rdcycle() {
  * @param[in]  sz         The size of the area of memory we need to flush from cache.
  * @param[in]  cache      L1 DCache parameters
  */
-static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache ) {
-    // uint8_t has size 1 (bytes)
-    uint64_t start_cycle = _riscv_rdcycle();
+static inline void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache ) {
     uint8_t dummyMem[5 * cache.size]; //!< Creates an array at least the size of the cache.
 
     // Determine the number of blocks we need to clear.
@@ -207,6 +205,7 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
     if ( (sz & cache.mask_Offset) != 0 ) {
         numSetsClear += 1;
     }
+    // printf("numsetsclear = %d | cache.sets = %d\n", numSetsClear, cache.sets);
     if (numSetsClear > cache.sets) {
         // Case when the number of sets to clear
         // is greater than the size of the cache, e.g.
@@ -214,7 +213,6 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
         // Flush the entire cache, no rollover.
         numSetsClear = cache.sets;
     }
-
 
     uint8_t dummyVar = 0; //!< Dummy var used to perform memory reads.
     uint64_t alignedMem = ((uint64_t)&dummyMem + cache.size) & cache.mask_Tag;  //!< Memory space aligned on the first space in dummyMem with set and offset = 0
@@ -224,10 +222,9 @@ static void _riscv_flushCache(uint64_t addr, uint64_t sz, struct cache_t cache )
         uint64_t setOffset = (((addr & cache.mask_Set) >> cache.numbits_Offset) + i) << cache.numbits_Offset;
         for (uint64_t j=0; j<4*cache.ways; ++j) {
             uint64_t wayOffset = j << (cache.numbits_Offset + cache.numbits_Set);
-            dummyVar = *((uint8_t*)(alignedMem + setOffset + wayOffset));
+            dummyVar = *((volatile uint8_t*)(alignedMem + setOffset + wayOffset));
         }
     }
-    uint64_t end_cycle = _riscv_rdcycle();
 }
 
 
